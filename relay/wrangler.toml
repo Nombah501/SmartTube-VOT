@@ -16,7 +16,7 @@ routes = [
 ]
 
 [vars]
-# OAUTH_CLIENT_ID = "your-registered-yandex-app-client-id"
+OAUTH_CLIENT_ID = "43ad0b19d0d549b6bd1c8b362b05e01b"
 
 [[kv_namespaces]]
 binding = "AUTH"

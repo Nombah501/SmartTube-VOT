@@ -89,16 +89,18 @@ async function handleSubmit(request, env) {
 }
 
 function phonePage(code, origin, clientId) {
+    // Debug-type OAuth apps redirect back to oauth.yandex.ru/verification_code
+    // (custom redirect_uri is rejected), so the button opens Yandex in a new tab
+    // and the user pastes the shown token back here.
     const oauthButton = clientId
-        ? `<a href="https://oauth.yandex.ru/authorize?response_type=token&client_id=${encodeURIComponent(clientId)}&redirect_uri=${encodeURIComponent(origin + "/cb")}&force_confirm=yes&state=${encodeURIComponent(code)}"><button>Войти через Яндекс</button></a>
-<p style="margin-top:8px">после входа токен уйдёт на ТВ автоматически</p>
+        ? `<a href="https://oauth.yandex.ru/authorize?response_type=token&client_id=${encodeURIComponent(clientId)}" target="_blank"><button>Войти через Яндекс</button></a>
+<p style="margin-top:8px">Яндекс покажет токен на новой вкладке — скопируйте его и вставьте ниже</p>
 <p>— или —</p>`
         : `<p>1. Откройте <a href="https://oauth.yandex.ru/" target="_blank">oauth.yandex.ru</a> и войдите<br>2. Скопируйте OAuth-токен со страницы<br>3. Вставьте его ниже</p>`;
     return page(`
 <h1>Вход для SmartTube</h1>
 <p>Код с телевизора:</p><div class="code">${code}</div>
 ${oauthButton}
-<textarea id="token" placeholder="OAuth-токен (необязательно, если вошли кнопкой)"></textarea>
 <button id="submit">Отправить на телевизор</button>
 <p id="msg"></p>
 <script>
