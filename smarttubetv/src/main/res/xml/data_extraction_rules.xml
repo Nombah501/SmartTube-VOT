@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 31+ data extraction rules: keep the Yandex OAuth token out of cloud backup and device transfer -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="vot_data.xml"/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="vot_data.xml"/>
+    </device-transfer>
+</data-extraction-rules>

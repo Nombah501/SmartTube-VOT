@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- API 23–30 cloud/ADB backup rules: never ship the Yandex OAuth token -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="vot_data.xml"/>
+</full-backup-content>

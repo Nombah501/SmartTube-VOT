@@ -552,7 +552,7 @@ public class VoiceTranslateController extends BasePlayerController {
     private void handleTranslationError(String message) {
         Log.e(TAG, "Translation error: %s", message);
         if (message != null && message.contains("auth required")) {
-            MessageHelpers.showMessage(getContext(), R.string.vot_error_auth_required);
+            AppDialogUtil.showVotAuthRequiredDialog(getContext());
         } else {
             MessageHelpers.showMessage(getContext(), R.string.vot_error_generic);
         }

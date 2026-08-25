@@ -563,6 +563,29 @@ public class AppDialogUtil {
         presenter.showDialog(title);
     }
 
+    public static void showVotAuthRequiredDialog(Context context) {
+        AppDialogPresenter presenter = AppDialogPresenter.instance(context);
+        List<OptionItem> options = new ArrayList<>();
+
+        options.add(UiOptionItem.from(context.getString(R.string.vot_qr_login),
+                optionItem -> VotQrAuthDialog.show(context)));
+
+        options.add(UiOptionItem.from(context.getString(R.string.vot_qr_manual),
+                optionItem -> VotTokenEditDialog.show(context, VotData.instance(context).getOAuthToken(), token -> {
+                    if (token.isEmpty()) {
+                        VotData.instance(context).clearOAuthToken();
+                        VotData.instance(context).setLivelyVoiceEnabled(false);
+                        MessageHelpers.showMessage(context, R.string.vot_token_cleared);
+                    } else {
+                        VotData.instance(context).setOAuthToken(token);
+                        MessageHelpers.showMessage(context, R.string.vot_token_saved);
+                    }
+                })));
+
+        presenter.appendStringsCategory(context.getString(R.string.vot_settings_category), options);
+        presenter.showDialog(context.getString(R.string.vot_error_auth_required));
+    }
+
     public static OptionCategory createPitchEffectCategory(Context context) {
         String title = context.getString(R.string.pitch_effect);
 

@@ -20,6 +20,7 @@ import com.liskovsoft.smartyoutubetv2.common.prefs.PlayerTweaksData;
 import com.liskovsoft.smartyoutubetv2.common.prefs.SearchData;
 import com.liskovsoft.smartyoutubetv2.common.prefs.VotData;
 import com.liskovsoft.smartyoutubetv2.common.utils.AppDialogUtil;
+import com.liskovsoft.smartyoutubetv2.common.utils.VotQrAuthDialog;
 import com.liskovsoft.smartyoutubetv2.common.utils.VotTokenEditDialog;
 import com.liskovsoft.youtubeapi.service.internal.MediaServiceData;
 
@@ -242,6 +243,9 @@ public class PlayerSettingsPresenter extends BasePresenter<Void> {
     private void showVotTokenSection() {
         AppDialogPresenter presenter = AppDialogPresenter.instance(getContext());
         List<OptionItem> options = new ArrayList<>();
+
+        options.add(UiOptionItem.from(getContext().getString(R.string.vot_qr_login),
+                optionItem -> VotQrAuthDialog.show(getContext())));
 
         String status = mVotData.hasOAuthToken()
                 ? getContext().getString(R.string.vot_token_status_set, mVotData.getTokenPreview())

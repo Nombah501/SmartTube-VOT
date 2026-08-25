@@ -98,6 +98,8 @@ dependencies {
 
     implementation 'com.jakewharton:process-phoenix:' + phoenixVersion
 
+    implementation 'com.google.zxing:core:3.5.3' // QR code generation for Yandex sign-in
+
     implementation project(':leanbackassistant')
 
     implementation project(':appupdatechecker2')
