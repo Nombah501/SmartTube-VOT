@@ -14,6 +14,27 @@
         android:scaleType="fitCenter" />
 
     <TextView
+        android:id="@+id/tv_qr_code"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:letterSpacing="0.3"
+        android:textColor="@color/dialog_text_color"
+        android:textSize="34sp"
+        android:textStyle="bold"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/tv_qr_hint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/vot_qr_scan_hint"
+        android:textColor="@color/dialog_text_color"
+        android:textSize="14sp" />
+
+    <TextView
         android:id="@+id/tv_qr_status"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

@@ -21,6 +21,7 @@ import com.liskovsoft.smartyoutubetv2.common.prefs.SearchData;
 import com.liskovsoft.smartyoutubetv2.common.prefs.VotData;
 import com.liskovsoft.smartyoutubetv2.common.utils.AppDialogUtil;
 import com.liskovsoft.smartyoutubetv2.common.utils.VotQrAuthDialog;
+import com.liskovsoft.smartyoutubetv2.common.utils.SimpleEditDialog;
 import com.liskovsoft.smartyoutubetv2.common.utils.VotTokenEditDialog;
 import com.liskovsoft.youtubeapi.service.internal.MediaServiceData;
 
@@ -262,8 +263,16 @@ public class PlayerSettingsPresenter extends BasePresenter<Void> {
                         MessageHelpers.showMessage(getContext(), R.string.vot_token_cleared);
                     } else {
                         mVotData.setOAuthToken(token);
-                        MessageHelpers.showMessage(getContext(), R.string.vot_token_saved);
                     }
+                })));
+
+        options.add(UiOptionItem.from(getContext().getString(R.string.vot_relay_url),
+                optionItem -> SimpleEditDialog.show(getContext(),
+                        getContext().getString(R.string.vot_relay_url),
+                        mVotData.getRelayUrl(),
+                        newValue -> {
+                            mVotData.setRelayUrl(newValue);
+                            return true;
                 })));
 
         presenter.appendStringsCategory(getContext().getString(R.string.vot_token_dialog_title), options);
@@ -335,7 +344,6 @@ public class PlayerSettingsPresenter extends BasePresenter<Void> {
 
     private void appendPlayerButtonsCategory(AppDialogPresenter settingsPresenter) {
         List<OptionItem> options = new ArrayList<>();
-
         for (int[] pair : new int[][] {
                 {R.string.auto_frame_rate, PlayerTweaksData.PLAYER_BUTTON_AFR},
                 {R.string.action_sound_off, PlayerTweaksData.PLAYER_BUTTON_SOUND_OFF},

@@ -193,6 +193,7 @@
     <string name="content_block_interaction">Interaction reminder (subscribe)</string>
     <string name="content_block_self_promo">Unpaid/self promotion</string>
     <string name="content_block_music_off_topic">Non-music section of clip</string>
+    <string name="content_block_filler">Off-topic (filler)</string>
     <string name="confirm_segment_skip">Skip segment \"%s\"\?</string>
     <string name="cancel_segment_skip">Cancel segment skip</string>
     <string name="msg_skipping_segment">Skipping segment \"%s\"…</string>
@@ -364,8 +365,7 @@
     <string name="vot_disable_google_for_yandex">Turn off «YouTube auto-dub» in the voice translation menu first</string>
     <string name="vot_qr_login">Sign in with QR code</string>
     <string name="vot_qr_title">Yandex sign-in</string>
-    <string name="vot_qr_scan_hint">Scan with your phone camera and confirm sign-in</string>
-    <string name="vot_qr_url_note">passport.yandex.ru · sign-in for video translation</string>
+    <string name="vot_qr_url_note">Open the link on your phone and enter the code</string>
     <string name="vot_qr_state_creating">Preparing code…</string>
     <string name="vot_qr_state_waiting">Waiting for confirmation…</string>
     <string name="vot_qr_state_saving">Confirmed, saving token…</string>
@@ -375,13 +375,14 @@
     <string name="vot_qr_cancel">Cancel</string>
     <string name="vot_qr_expired">Code expired</string>
     <string name="vot_qr_error_generic">Sign-in failed</string>
-    <string name="vot_qr_captcha">Yandex requested a captcha. Try again later or paste the token manually</string>
+    <string name="vot_relay_url">Relay server address</string>
     <string name="action_playback_queue">Playback queue</string>
     <string name="action_video_speed">Video speed</string>
     <string name="action_subtitles">Subtitles</string>
     <string name="action_like">Like</string>
     <string name="action_dislike">Dislike</string>
     <string name="action_play_pause">Play/Pause</string>
+    <string name="vot_qr_scan_hint">Scan the QR or open this link on your phone and enter the code</string>
     <string name="action_repeat_mode">Playback mode</string>
     <string name="action_next">Next video</string>
     <string name="action_previous">Previous video</string>
@@ -392,7 +393,6 @@
     <string name="content_block_action_only_skip">Only skip</string>
     <string name="content_block_action_toast">Skip with notification</string>
     <string name="content_block_action_dialog">Show confirmation dialog</string>
-    <string name="content_block_filler">Off-topic (filler)</string>
     <string name="keyboard_auto_show">Show keyboard automatically</string>
     <string name="cancel_dialog">Cancel</string>
     <string name="msg_player_error_source2">URL isn\'t working or incorrect device time.\nUsually, it\'s a bug in the app.</string>

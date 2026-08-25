@@ -22,9 +22,9 @@ import com.liskovsoft.sharedutils.helpers.MessageHelpers;
 import com.liskovsoft.smartyoutubetv2.common.app.presenters.AppDialogPresenter;
 import com.liskovsoft.smartyoutubetv2.common.R;
 import com.liskovsoft.smartyoutubetv2.common.prefs.VotData;
-import com.liskovsoft.smartyoutubetv2.common.vot.VotQrAuth;
-import com.liskovsoft.smartyoutubetv2.common.vot.VotQrAuth.Event;
-import com.liskovsoft.smartyoutubetv2.common.vot.VotQrAuth.Phase;
+import com.liskovsoft.smartyoutubetv2.common.vot.VotCodeAuth;
+import com.liskovsoft.smartyoutubetv2.common.vot.VotCodeAuth.Event;
+import com.liskovsoft.smartyoutubetv2.common.vot.VotCodeAuth.Phase;
 
 import java.util.HashMap;
 import java.util.Locale;
@@ -50,6 +50,7 @@ public final class VotQrAuthDialog {
         View contentView = LayoutInflater.from(context).inflate(R.layout.vot_qr_auth_dialog, null);
 
         ImageView qrImage = contentView.findViewById(R.id.iv_qr_image);
+        TextView codeText = contentView.findViewById(R.id.tv_qr_code);
         TextView statusText = contentView.findViewById(R.id.tv_qr_status);
         TextView countdownText = contentView.findViewById(R.id.tv_qr_countdown);
         Button refreshBtn = contentView.findViewById(R.id.btn_qr_refresh);
@@ -78,18 +79,15 @@ public final class VotQrAuthDialog {
             unsubscribe.run();
             stopCountdown.run();
 
-            Observable<Event> observable = VotQrAuth.create()
+            Observable<Event> observable = VotCodeAuth.create(VotData.instance(context).getRelayUrl())
                     .observeOn(AndroidSchedulers.mainThread());
 
             disposableHolder[0] = observable.subscribe(event -> {
                 switch (event.phase) {
-                    case CREATING:
-                        qrImage.setVisibility(View.GONE);
-                        statusText.setText(R.string.vot_qr_state_creating);
-                        countdownText.setText("");
-                        break;
                     case WAITING:
                         statusText.setText(R.string.vot_qr_state_waiting);
+                        codeText.setText(event.code);
+                        codeText.setVisibility(View.VISIBLE);
                         Bitmap qrBitmap = createQrBitmap(event.detail);
                         if (qrBitmap != null) {
                             qrImage.setVisibility(View.VISIBLE);
@@ -102,6 +100,7 @@ public final class VotQrAuthDialog {
                     case CONFIRMED_EXCHANGING:
                         stopCountdown.run();
                         qrImage.setVisibility(View.GONE);
+                        codeText.setVisibility(View.GONE);
                         statusText.setText(R.string.vot_qr_state_saving);
                         break;
                     case SUCCESS:
@@ -110,21 +109,17 @@ public final class VotQrAuthDialog {
                         MessageHelpers.showMessage(context, R.string.vot_token_saved);
                         dialogHolder[0].dismiss();
                         break;
-                    case CAPTCHA:
-                        stopCountdown.run();
-                        qrImage.setVisibility(View.GONE);
-                        statusText.setText(R.string.vot_qr_captcha);
-                        refreshBtn.requestFocus();
-                        break;
                     case EXPIRED:
                         stopCountdown.run();
                         qrImage.setVisibility(View.GONE);
+                        codeText.setVisibility(View.GONE);
                         statusText.setText(R.string.vot_qr_expired);
                         refreshBtn.requestFocus();
                         break;
                     case NETWORK_ERROR:
                         stopCountdown.run();
                         qrImage.setVisibility(View.GONE);
+                        codeText.setVisibility(View.GONE);
                         statusText.setText(R.string.vot_qr_error_generic);
                         break;
                 }

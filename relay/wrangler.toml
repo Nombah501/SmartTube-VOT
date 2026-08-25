@@ -1,0 +1,19 @@
+# Deploy:
+#   cd relay
+#   npx wrangler login          # once, opens browser
+#   npx wrangler kv namespace create AUTH
+#   -> put the returned id into kv_namespaces below
+#   npx wrangler deploy
+# Optional (enables the one-tap Yandex button on the phone page):
+#   register an app at https://oauth.yandex.ru/ (web service, redirect URI
+#   https://<this-worker>.workers.dev/cb), then set OAUTH_CLIENT_ID below.
+name = "smarttube-vot-auth"
+main = "worker.js"
+compatibility_date = "2026-08-01"
+
+[vars]
+# OAUTH_CLIENT_ID = "your-registered-yandex-app-client-id"
+
+[[kv_namespaces]]
+binding = "AUTH"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"

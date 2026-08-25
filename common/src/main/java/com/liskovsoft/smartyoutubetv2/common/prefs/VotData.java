@@ -14,6 +14,7 @@ public class VotData extends SharedPreferencesBase {
     private static final String TRANSLATION_VOLUME_PERCENT = "translation_volume_percent";
     private static final String AUTO_TRANSLATE = "auto_translate_enabled";
     private static final String PREFER_YOUTUBE_AUTO_DUB = "prefer_youtube_auto_dub";
+    private static final String RELAY_URL = "relay_url";
     private static final int DEFAULT_ORIGINAL_VOLUME_PERCENT = 15;
     private static final int DEFAULT_TRANSLATION_VOLUME_PERCENT = 100;
 
@@ -87,6 +88,15 @@ public class VotData extends SharedPreferencesBase {
 
     public void setPreferYoutubeAutoDub(boolean enabled) {
         putBoolean(PREFER_YOUTUBE_AUTO_DUB, enabled);
+    }
+
+    /** Base URL of the sign-in relay worker (see relay/worker.js). */
+    public String getRelayUrl() {
+        return getString(RELAY_URL, "");
+    }
+
+    public void setRelayUrl(String url) {
+        putString(RELAY_URL, url == null ? "" : url.trim());
     }
 
     public float getOriginalVolumeMultiplier() {
