@@ -19,6 +19,7 @@ import com.google.zxing.EncodeHintType;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.liskovsoft.sharedutils.helpers.MessageHelpers;
+import com.liskovsoft.smartyoutubetv2.common.app.presenters.AppDialogPresenter;
 import com.liskovsoft.smartyoutubetv2.common.R;
 import com.liskovsoft.smartyoutubetv2.common.prefs.VotData;
 import com.liskovsoft.smartyoutubetv2.common.vot.VotQrAuth;
@@ -43,6 +44,8 @@ public final class VotQrAuthDialog {
     }
 
     public static void show(Context context) {
+        // Close the settings panel stack: the sidebar otherwise stays on top of the QR view.
+        AppDialogPresenter.instance(context).closeDialog();
         AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.AppDialog);
         View contentView = LayoutInflater.from(context).inflate(R.layout.vot_qr_auth_dialog, null);
 
@@ -81,6 +84,7 @@ public final class VotQrAuthDialog {
             disposableHolder[0] = observable.subscribe(event -> {
                 switch (event.phase) {
                     case CREATING:
+                        qrImage.setVisibility(View.GONE);
                         statusText.setText(R.string.vot_qr_state_creating);
                         countdownText.setText("");
                         break;
@@ -88,12 +92,16 @@ public final class VotQrAuthDialog {
                         statusText.setText(R.string.vot_qr_state_waiting);
                         Bitmap qrBitmap = createQrBitmap(event.detail);
                         if (qrBitmap != null) {
+                            qrImage.setVisibility(View.VISIBLE);
                             qrImage.setImageBitmap(qrBitmap);
+                        } else {
+                            qrImage.setVisibility(View.GONE);
                         }
                         startCountdown(handler, countdownHolder, countdownText, event.expiresAtMs);
                         break;
                     case CONFIRMED_EXCHANGING:
                         stopCountdown.run();
+                        qrImage.setVisibility(View.GONE);
                         statusText.setText(R.string.vot_qr_state_saving);
                         break;
                     case SUCCESS:
@@ -104,16 +112,19 @@ public final class VotQrAuthDialog {
                         break;
                     case CAPTCHA:
                         stopCountdown.run();
+                        qrImage.setVisibility(View.GONE);
                         statusText.setText(R.string.vot_qr_captcha);
                         refreshBtn.requestFocus();
                         break;
                     case EXPIRED:
                         stopCountdown.run();
+                        qrImage.setVisibility(View.GONE);
                         statusText.setText(R.string.vot_qr_expired);
                         refreshBtn.requestFocus();
                         break;
                     case NETWORK_ERROR:
-                        Log.e(TAG, "QR sign-in network error: " + event.detail);
+                        stopCountdown.run();
+                        qrImage.setVisibility(View.GONE);
                         statusText.setText(R.string.vot_qr_error_generic);
                         break;
                 }

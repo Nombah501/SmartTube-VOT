@@ -39,8 +39,10 @@ import okhttp3.Response;
 public final class VotQrAuth {
     private static final String PASSPORT_ORIGIN = "https://passport.yandex.ru";
     private static final String MOBILE_PROXY_ORIGIN = "https://mobileproxy.passport.yandex.net";
+    // Neutral browser UA: the reference (YandexStation) passes captcha with a plain non-app UA.
     private static final String USER_AGENT =
-            "com.yandex.mobile.auth.sdk/6.32.2.11 (Apple iPad8,6; iOS 26.4) PassportSDK/6.32.2.11 ru.yandex.key/24023131";
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) " +
+            "Chrome/126.0.0.0 Safari/537.36";
     private static final Pattern CSRF_PRIMARY = Pattern.compile("window\\.__CSRF__\\s*=\\s*\"([^\"]+)\"");
     private static final Pattern CSRF_FALLBACK = Pattern.compile("\"csrf_token\"\\s+value=\"([^\"]+)\"");
     // Public client credentials of the official Yandex mobile apps (same as the reference sources).
@@ -101,6 +103,7 @@ public final class VotQrAuth {
         final LinkedHashMap<String, LinkedHashMap<String, String>> jar = new LinkedHashMap<>();
         String csrfToken;
         String trackId;
+        JSONObject submitResponse; // posted verbatim to magic/code/status (YandexStation auth_json)
     }
 
     private static final class CaptchaException extends RuntimeException {
@@ -164,10 +167,9 @@ public final class VotQrAuth {
             clearJar(state);
         }
     }
-
-    /** Step 1: open the Passport auth page and extract the CSRF token. */
+    /** Step 1: open the Passport pwl-yandex page and extract the CSRF token (YandexStation bootstrap). */
     private static String openPassportPage(VotHttp http) throws IOException {
-        try (Response response = http.execute(PASSPORT_ORIGIN, USER_AGENT, "/am?app_platform=android",
+        try (Response response = http.execute(PASSPORT_ORIGIN, USER_AGENT, "/pwl-yandex",
                 "GET", null, null)) {
             String body = responseBody(response);
             if (response.code() != 200) {
@@ -188,16 +190,15 @@ public final class VotQrAuth {
     private static void startQrSession(VotHttp http, SessionState state) throws IOException {
         JSONObject payload = new JSONObject();
         try {
-            payload.put("retpath", PASSPORT_ORIGIN + "/profile");
-            payload.put("with_code", true);
+            payload.put("retpath", PASSPORT_ORIGIN + "/");
         } catch (JSONException e) {
             throw new AuthException("Cannot build password/submit request");
         }
         try (Response response = http.execute(PASSPORT_ORIGIN, USER_AGENT,
                 "/pwl-yandex/api/passport/auth/password/submit", "POST", jsonBody(payload),
                 passportHeaders(state.csrfToken))) {
-            ensureSuccessful(response, "password/submit");
             JSONObject resp = parseJson(response);
+            state.submitResponse = resp;
             state.csrfToken = resp.optString("csrf_token", state.csrfToken);
             state.trackId = resp.optString("track_id", null);
             if (state.trackId == null || state.trackId.isEmpty()) {
@@ -213,14 +214,22 @@ public final class VotQrAuth {
                 .add("magic_track_id", state.trackId)
                 .add("track_id", "")
                 .build();
+        String qrUrl = null;
         try (Response response = http.execute(PASSPORT_ORIGIN, USER_AGENT,
                 "/pwl-yandex/api/passport/auth/magic/code", "POST", form,
                 passportHeaders(state.csrfToken))) {
             ensureSuccessful(response, "magic/code");
-            parseJson(response); // validate the reply, the QR URL is built from the track id
+            // YandexStation uses the server-provided link
+            JSONObject resp = parseJsonOrNull(response);
+            if (resp != null) {
+                qrUrl = resp.optString("link", null);
+            }
         }
-        return PASSPORT_ORIGIN + "/auth/magic/code/?track_id="
-                + URLEncoder.encode(state.trackId, "UTF-8");
+        if (qrUrl == null || qrUrl.isEmpty()) {
+            qrUrl = PASSPORT_ORIGIN + "/auth/magic/code/?track_id="
+                    + URLEncoder.encode(state.trackId, "UTF-8");
+        }
+        return qrUrl;
     }
 
     /**
@@ -246,15 +255,10 @@ public final class VotQrAuth {
 
     /** Primary status endpoint (YandexStation). @return true when the user has confirmed. */
     private static boolean pollStatusPrimary(VotHttp http, SessionState state) throws IOException {
-        JSONObject payload = new JSONObject();
-        try {
-            payload.put("csrf_token", state.csrfToken);
-            payload.put("track_id", state.trackId);
-        } catch (JSONException e) {
-            throw new AuthException("Cannot build magic/status request");
-        }
+        // YandexStation posts the whole password/submit response (auth_json) back
+        RequestBody payloadBody = jsonBody(state.submitResponse);
         try (Response response = http.execute(PASSPORT_ORIGIN, USER_AGENT,
-                "/pwl-yandex/api/passport/auth/magic/code/status", "POST", jsonBody(payload),
+                "/pwl-yandex/api/passport/auth/magic/code/status", "POST", payloadBody,
                 passportHeaders(state.csrfToken))) {
             if (!response.isSuccessful()) {
                 return false;
@@ -325,9 +329,7 @@ public final class VotQrAuth {
 
     private static Map<String, String> passportHeaders(String csrfToken) {
         Map<String, String> headers = new LinkedHashMap<>();
-        headers.put("x-csrf-token", csrfToken);
-        headers.put("Origin", PASSPORT_ORIGIN);
-        headers.put("Referer", PASSPORT_ORIGIN + "/");
+        headers.put("X-CSRF-Token", csrfToken);
         return headers;
     }
 
