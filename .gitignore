@@ -47,6 +47,8 @@ build/
 log.txt
 android.keystore
 android-upd2.keystore
+smarttube-vot.keystore
+keystore.properties
 build.log
 notes.txt
 out.txt

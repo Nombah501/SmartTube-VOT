@@ -323,6 +323,9 @@
     <string name="vot_error_no_video">Нет видео для перевода</string>
     <string name="vot_error_generic">Не удалось получить перевод</string>
     <string name="vot_settings_category">Закадровый перевод (Яндекс)</string>
+    <string name="vot_token_section">OAuth-токен</string>
+    <string name="vot_state_on">вкл</string>
+    <string name="vot_state_off">выкл</string>
     <string name="vot_token_dialog_title">OAuth-токен Яндекса</string>
     <string name="vot_token_dialog_hint">Вставьте токен с oauth.yandex.ru. На TV удобнее: скопируйте на телефоне → «Вставить из буфера».</string>
     <string name="vot_edit_token">Указать OAuth-токен</string>

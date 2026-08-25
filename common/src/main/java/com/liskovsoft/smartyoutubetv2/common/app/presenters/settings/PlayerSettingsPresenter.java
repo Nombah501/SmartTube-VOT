@@ -205,6 +205,44 @@ public class PlayerSettingsPresenter extends BasePresenter<Void> {
     private void appendVotCategory(AppDialogPresenter settingsPresenter) {
         List<OptionItem> options = new ArrayList<>();
 
+        options.add(UiOptionItem.from(getContext().getString(R.string.vot_token_section),
+                optionItem -> showVotTokenSection()));
+
+        options.add(UiOptionItem.from(
+                appendState(getContext().getString(R.string.vot_lively_voice), mVotData.isLivelyVoiceEnabled()),
+                optionItem -> showVotVoiceSection()));
+
+        options.add(UiOptionItem.from(
+                appendState(getContext().getString(R.string.vot_auto_translate), mVotData.isAutoTranslateEnabled()),
+                optionItem -> showVotAutoTranslateSection()));
+
+        options.add(UiOptionItem.from(
+                appendState(getContext().getString(R.string.vot_prefer_youtube_dub), mVotData.isPreferYoutubeAutoDub()),
+                optionItem -> showVotYoutubeDubSection()));
+
+        options.add(UiOptionItem.from(
+                appendPercent(getContext().getString(R.string.vot_original_volume), mVotData.getOriginalVolumePercent()),
+                optionItem -> showVotVolumeSection(false)));
+
+        options.add(UiOptionItem.from(
+                appendPercent(getContext().getString(R.string.vot_translation_volume), mVotData.getTranslationVolumePercent()),
+                optionItem -> showVotVolumeSection(true)));
+
+        settingsPresenter.appendStringsCategory(getContext().getString(R.string.vot_settings_category), options);
+    }
+
+    private String appendState(String title, boolean enabled) {
+        return title + ": " + getContext().getString(enabled ? R.string.vot_state_on : R.string.vot_state_off);
+    }
+
+    private String appendPercent(String title, int percent) {
+        return title + ": " + percent + "%";
+    }
+
+    private void showVotTokenSection() {
+        AppDialogPresenter presenter = AppDialogPresenter.instance(getContext());
+        List<OptionItem> options = new ArrayList<>();
+
         String status = mVotData.hasOAuthToken()
                 ? getContext().getString(R.string.vot_token_status_set, mVotData.getTokenPreview())
                 : getContext().getString(R.string.vot_token_status_empty);
@@ -224,28 +262,58 @@ public class PlayerSettingsPresenter extends BasePresenter<Void> {
                     }
                 })));
 
-        settingsPresenter.appendStringsCategory(getContext().getString(R.string.vot_settings_category), options);
+        presenter.appendStringsCategory(getContext().getString(R.string.vot_token_dialog_title), options);
+        presenter.showDialog(getContext().getString(R.string.vot_settings_category));
+    }
 
-        List<OptionItem> votToggles = new ArrayList<>();
-        votToggles.add(UiOptionItem.from(
+    private void showVotVoiceSection() {
+        List<OptionItem> toggles = new ArrayList<>();
+        toggles.add(UiOptionItem.from(
                 getContext().getString(R.string.vot_lively_voice),
                 getContext().getString(R.string.vot_lively_voice_desc),
                 optionItem -> {
-                    if (!mVotData.hasOAuthToken()) {
+                    if (optionItem.isSelected() && !mVotData.hasOAuthToken()) {
                         MessageHelpers.showMessage(getContext(), R.string.vot_error_auth_required);
-                        return;
                     }
                     mVotData.setLivelyVoiceEnabled(optionItem.isSelected());
                 },
                 mVotData.isLivelyVoiceEnabled()));
-        settingsPresenter.appendCheckedCategory(getContext().getString(R.string.vot_lively_voice), votToggles);
+        showCheckedSubCategory(R.string.vot_lively_voice, toggles);
+    }
 
-        settingsPresenter.appendRadioCategory(
-                getContext().getString(R.string.vot_original_volume),
-                AppDialogUtil.createVotOriginalVolumeCategory(getContext()).options);
-        settingsPresenter.appendRadioCategory(
-                getContext().getString(R.string.vot_translation_volume),
-                AppDialogUtil.createVotTranslationVolumeCategory(getContext()).options);
+    private void showVotAutoTranslateSection() {
+        List<OptionItem> toggles = new ArrayList<>();
+        toggles.add(UiOptionItem.from(
+                getContext().getString(R.string.vot_auto_translate),
+                getContext().getString(R.string.vot_auto_translate_desc),
+                optionItem -> mVotData.setAutoTranslateEnabled(optionItem.isSelected()),
+                mVotData.isAutoTranslateEnabled()));
+        showCheckedSubCategory(R.string.vot_auto_translate, toggles);
+    }
+
+    private void showVotYoutubeDubSection() {
+        List<OptionItem> toggles = new ArrayList<>();
+        toggles.add(UiOptionItem.from(
+                getContext().getString(R.string.vot_prefer_youtube_dub),
+                getContext().getString(R.string.vot_prefer_youtube_dub_desc),
+                optionItem -> mVotData.setPreferYoutubeAutoDub(optionItem.isSelected()),
+                mVotData.isPreferYoutubeAutoDub()));
+        showCheckedSubCategory(R.string.vot_prefer_youtube_dub, toggles);
+    }
+
+    private void showCheckedSubCategory(int titleResId, List<OptionItem> toggles) {
+        AppDialogPresenter presenter = AppDialogPresenter.instance(getContext());
+        presenter.appendCheckedCategory(getContext().getString(titleResId), toggles);
+        presenter.showDialog(getContext().getString(R.string.vot_settings_category));
+    }
+
+    private void showVotVolumeSection(boolean translation) {
+        AppDialogPresenter presenter = AppDialogPresenter.instance(getContext());
+        OptionCategory category = translation
+                ? AppDialogUtil.createVotTranslationVolumeCategory(getContext())
+                : AppDialogUtil.createVotOriginalVolumeCategory(getContext());
+        presenter.appendRadioCategory(category.title, category.options);
+        presenter.showDialog(getContext().getString(R.string.vot_settings_category));
     }
 
     private void showVotTokenDialog() {

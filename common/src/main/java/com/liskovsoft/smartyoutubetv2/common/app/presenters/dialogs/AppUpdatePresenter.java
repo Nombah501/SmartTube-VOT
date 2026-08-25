@@ -61,10 +61,17 @@ public class AppUpdatePresenter extends BasePresenter<Void> implements AppUpdate
 
     @Override
     public void onUpdateFound(String versionName, List<String> changelog, String apkPath) {
+        if (getContext() == null) {
+            return;
+        }
+
         if (mIsForceCheck) {
             LoadingManager.showLoading(getContext(), false);
-            showUpdateDialog(versionName, changelog, apkPath);
-        } else if (GeneralData.instance(getContext()).isOldUpdateNotificationsEnabled()) {
+        }
+
+        // Always offer the update dialog on launch; pin a card instead
+        // when the player is in foreground or the app is in background.
+        if (!getViewManager().isPlayerInForeground() && Utils.isAppInForegroundFixed()) {
             showUpdateDialog(versionName, changelog, apkPath);
         } else {
             pinUpdateSection(versionName, changelog, apkPath);
