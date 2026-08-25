@@ -164,6 +164,11 @@ export default {
             }
             return phonePage(code, url.origin, env.OAUTH_CLIENT_ID || "");
         }
+        // Short URL form: https://host/AB12CD (same as /t/AB12CD)
+        if (/^\/[A-Za-z0-9]{4,10}$/.test(path) && request.method === "GET") {
+            const code = path.slice(1).toUpperCase();
+            return phonePage(code, url.origin, env.OAUTH_CLIENT_ID || "");
+        }
         if (path === "/cb" && request.method === "GET") {
             return cbPage("");
         }

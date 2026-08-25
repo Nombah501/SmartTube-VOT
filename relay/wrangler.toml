@@ -11,6 +11,10 @@ name = "smarttube-vot-auth"
 main = "worker.js"
 compatibility_date = "2026-08-01"
 
+routes = [
+  { pattern = "v.n501.site", custom_domain = true }
+]
+
 [vars]
 # OAUTH_CLIENT_ID = "your-registered-yandex-app-client-id"
 
