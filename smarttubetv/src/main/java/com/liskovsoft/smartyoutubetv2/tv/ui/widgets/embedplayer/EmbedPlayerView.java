@@ -157,6 +157,11 @@ public class EmbedPlayerView extends PlayerView implements PlaybackView {
     }
 
     @Override
+    public void updateVoiceTranslatePendingEta(int remainingTimeSec) {
+
+    }
+
+    @Override
     public void setChannelIcon(String iconUrl) {
 
     }
