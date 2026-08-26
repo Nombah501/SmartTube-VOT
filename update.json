@@ -5,6 +5,21 @@
         "downloadUrlList_x86": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_x86.apk"],
         "downloadUrlList": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_universal.apk"]
     },
+    "32.31": {
+        "versionCode": 2421,
+        "changelog": [
+            "Sign-in without typing: QR code + relay link, token arrives automatically",
+            "Voice translation button now appears after upgrade (one-time migration)",
+            "Volume mix applies instantly while translation plays",
+            "Fixed sign-in page send button"
+        ],
+        "changelog_ru": [
+            "Вход без ввода текста: QR-код + ссылка-релей, токен прилетает сам",
+            "Кнопка закадрового перевода теперь появляется после обновления (разовая миграция)",
+            "Баланс громкости применяется мгновенно во время перевода",
+            "Исправлена кнопка отправки на странице входа"
+        ]
+    },
     "32.30": {
         "versionCode": 2420,
         "changelog": [
