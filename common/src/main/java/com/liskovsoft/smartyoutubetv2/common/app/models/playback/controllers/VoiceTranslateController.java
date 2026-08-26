@@ -178,7 +178,10 @@ public class VoiceTranslateController extends BasePlayerController {
     @Override
     public void onButtonLongClicked(int buttonId, int buttonState) {
         if (buttonId == ACTION_VOICE_TRANSLATE) {
-            AppDialogUtil.showVotMixDialog(getContext(), () -> tryApplyAutoTranslate(false));
+            AppDialogUtil.showVotMixDialog(getContext(), () -> {
+                applyVolumesLive();
+                tryApplyAutoTranslate(false);
+            });
         }
     }
 
@@ -492,6 +495,19 @@ public class VoiceTranslateController extends BasePlayerController {
         }
         mSavedMainVolume = getPlayer().getVolume();
         getPlayer().setVolume(votData().getOriginalVolumeMultiplier());
+    }
+
+    /** Re-apply current volume mix to the running players (mix dialog changes). */
+    private void applyVolumesLive() {
+        if (mState != STATE_ACTIVE) {
+            return;
+        }
+        if (mTranslationPlayer != null) {
+            mTranslationPlayer.setVolume(votData().getTranslationVolumeMultiplier());
+        }
+        if (getPlayer() != null) {
+            getPlayer().setVolume(votData().getOriginalVolumeMultiplier());
+        }
     }
 
     private void restoreMainVolume() {

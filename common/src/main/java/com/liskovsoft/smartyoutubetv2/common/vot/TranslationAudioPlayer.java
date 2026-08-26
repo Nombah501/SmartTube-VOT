@@ -65,6 +65,12 @@ public class TranslationAudioPlayer implements Player.EventListener {
         mPlayer.setPlaybackParameters(new PlaybackParameters(s, 1f));
     }
 
+    public void setVolume(float volume) {
+        if (mPlayer != null) {
+            mPlayer.setVolume(volume);
+        }
+    }
+
     public boolean isReady() {
         return mPlayer != null && mPlayer.getPlaybackState() == Player.STATE_READY;
     }
