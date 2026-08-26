@@ -9,7 +9,9 @@
 #   https://<this-worker>.workers.dev/cb), then set OAUTH_CLIENT_ID below.
 name = "smarttube-vot-auth"
 main = "worker.js"
+workers_dev = true
 compatibility_date = "2026-08-01"
+preview_urls = true
 
 routes = [
   { pattern = "v.n501.site", custom_domain = true }
