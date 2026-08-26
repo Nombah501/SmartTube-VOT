@@ -5,6 +5,21 @@
         "downloadUrlList_x86": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_x86.apk"],
         "downloadUrlList": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_universal.apk"]
     },
+    "32.32": {
+        "versionCode": 2422,
+        "changelog": [
+            "Original volume re-tuned: perceptual curve, 15% is now comfortably quiet",
+            "Original level now respects your master volume while ducking",
+            "Duck survives master volume changes during playback",
+            "Synced with upstream fixes"
+        ],
+        "changelog_ru": [
+            "Громкость оригинала перекалибрована: перцептивная кривая, 15% теперь комфортно тихо",
+            "Уровень оригинала учитывает вашу общую громкость при приглушении",
+            "Приглушение переживает изменение громкости во время просмотра",
+            "Синхронизация с фиксами апстрима"
+        ]
+    },
     "32.31": {
         "versionCode": 2421,
         "changelog": [
