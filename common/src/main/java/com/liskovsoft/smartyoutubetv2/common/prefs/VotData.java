@@ -5,6 +5,7 @@ import android.content.Context;
 import android.text.TextUtils;
 
 import com.liskovsoft.sharedutils.prefs.SharedPreferencesBase;
+import com.liskovsoft.smartyoutubetv2.common.vot.VotConfig;
 
 public class VotData extends SharedPreferencesBase {
     private static final String PREFS_NAME = "vot_data";
@@ -92,7 +93,7 @@ public class VotData extends SharedPreferencesBase {
 
     /** Base URL of the sign-in relay worker (see relay/worker.js). */
     public String getRelayUrl() {
-        return getString(RELAY_URL, "");
+        return getString(RELAY_URL, VotConfig.RELAY_BASE_URL);
     }
 
     public void setRelayUrl(String url) {

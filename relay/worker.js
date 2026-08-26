@@ -22,6 +22,9 @@ h1{font-size:22px;margin:0 0 12px}p{color:#aaa;font-size:15px;line-height:1.5}
 .code{font-size:40px;font-weight:700;letter-spacing:6px;margin:18px 0;color:#fff}
 button{background:#fc3f1d;color:#fff;border:0;border-radius:12px;padding:14px 20px;font-size:16px;width:100%;margin-top:12px}
 textarea{width:100%;box-sizing:border-box;background:#2c2c2e;color:#eee;border:1px solid #444;border-radius:10px;padding:12px;font-size:14px;min-height:90px;margin-top:16px}
+.step{margin:18px 0 6px;text-align:left}
+.hint{color:#8e8e93;font-size:13px;text-align:left;margin:6px 0 0}
+details{margin-top:10px}summary{color:#aaa;cursor:pointer}
 .ok{color:#4cd964}.err{color:#ff453a}a{color:#fc3f1d}`;
 
 function json(data, status = 200) {
@@ -90,40 +93,71 @@ async function handleSubmit(request, env) {
 
 function phonePage(code, origin, clientId) {
     // Debug-type OAuth apps redirect back to oauth.yandex.ru/verification_code
-    // (custom redirect_uri is rejected), so the button opens Yandex in a new tab
-    // and the user pastes the shown token back here.
-    const oauthButton = clientId
-        ? `<a href="https://oauth.yandex.ru/authorize?response_type=token&client_id=${encodeURIComponent(clientId)}" target="_blank"><button>Войти через Яндекс</button></a>
-<p style="margin-top:8px">Яндекс покажет токен на новой вкладке — скопируйте его и вставьте ниже</p>
-<p>— или —</p>`
-        : `<p>1. Откройте <a href="https://oauth.yandex.ru/" target="_blank">oauth.yandex.ru</a> и войдите<br>2. Скопируйте OAuth-токен со страницы<br>3. Вставьте его ниже</p>`;
+    // (custom redirect_uri is rejected), so the Yandex button opens a new tab where
+    // the token is shown; the user copies it, comes back, and step 2 reads the
+    // clipboard (with a manual fallback that is always in the DOM).
+    const step1 = clientId
+        ? `<div class="step"><b>1. Войдите через Яндекс</b></div>
+<a href="https://oauth.yandex.ru/authorize?response_type=token&client_id=${encodeURIComponent(clientId)}" target="_blank" rel="noopener"><button>Открыть Яндекс и войти</button></a>
+<p class="hint">Откроется новая вкладка. Нажмите «Скопировать» рядом с токеном — он нужен для шага 2.</p>`
+        : `<div class="step"><b>1. Получите токен</b></div>
+<a href="https://oauth.yandex.ru/" target="_blank" rel="noopener"><button>Открыть oauth.yandex.ru</button></a>
+<p class="hint">Войдите и скопируйте OAuth-токен со страницы.</p>`;
     return page(`
 <h1>Вход для SmartTube</h1>
-<p>Код с телевизора:</p><div class="code">${code}</div>
-${oauthButton}
-<button id="submit">Отправить на телевизор</button>
+<p>Код с телевизора: <span class="code">${code}</span></p>
+${step1}
+<div class="step"><b>2. Отправьте токен на телевизор</b></div>
+<button id="paste">Вставить и отправить</button>
+<details id="manual"><summary>Вставить код вручную</summary>
+<textarea id="token" placeholder="Вставьте скопированный токен"></textarea>
+<button id="submit">Отправить</button>
+</details>
 <p id="msg"></p>
 <script>
 const CODE = ${JSON.stringify(code)};
-document.getElementById("submit").onclick = async () => {
-    const msg = document.getElementById("msg");
-    const token = document.getElementById("token").value.trim();
+const msg = document.getElementById("msg");
+const manual = document.getElementById("manual");
+
+async function send(token) {
+    if (!token || token.length < 20) {
+        msg.className = "err"; msg.textContent = "Похоже, скопирован не токен. Вставьте вручную ниже.";
+        manual.open = true;
+        return;
+    }
     msg.className = ""; msg.textContent = "Отправляю...";
-    const r = await fetch("/api/submit", {method: "POST",
-        headers: {"content-type": "application/json"},
-        body: JSON.stringify({code: CODE, token})});
-    if (r.ok) { msg.className = "ok"; msg.textContent = "Готово! Смотрите телевизор."; }
-    else { msg.className = "err"; msg.textContent = "Код не найден или истёк."; }
+    try {
+        const r = await fetch("/api/submit", {method: "POST",
+            headers: {"content-type": "application/json"},
+            body: JSON.stringify({code: CODE, token})});
+        if (r.ok) { msg.className = "ok"; msg.textContent = "Готово! Возвращайтесь к телевизору."; }
+        else { msg.className = "err"; msg.textContent = "Код истёк — начните заново на телевизоре."; }
+    } catch (e) { msg.className = "err"; msg.textContent = "Сеть недоступна."; }
+}
+
+document.getElementById("paste").onclick = async () => {
+    msg.className = ""; msg.textContent = "Читаю буфер обмена...";
+    try {
+        const text = await navigator.clipboard.readText();
+        await send(text.trim());
+    } catch (e) {
+        msg.textContent = "Не получилось прочитать буфер — вставьте вручную.";
+        manual.open = true;
+        document.getElementById("token").focus();
+    }
 };
-// OAuth implicit callback lands on /t/<code>#access_token=...
+
+document.getElementById("submit").onclick = () => send(document.getElementById("token").value.trim());
+
+if (!navigator.clipboard || !navigator.clipboard.readText) {
+    manual.open = true;
+}
+
+// OAuth implicit callback (future app types) lands here with #access_token
 if (location.hash.includes("access_token")) {
     const p = new URLSearchParams(location.hash.slice(1));
-    fetch("/api/submit", {method: "POST", headers: {"content-type": "application/json"},
-        body: JSON.stringify({code: CODE, token: p.get("access_token")})})
-        .then(r => { const msg = document.getElementById("msg");
-            msg.className = r.ok ? "ok" : "err";
-            msg.textContent = r.ok ? "Готово! Смотрите телевизор." : "Не удалось передать токен."; });
     history.replaceState(null, "", location.pathname);
+    send(p.get("access_token"));
 }
 </script>`);
 }

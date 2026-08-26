@@ -10,6 +10,8 @@ public final class VotConfig {
     public static final String REQUEST_LANG = "en";
     public static final String RESPONSE_LANG = "ru";
     public static final String FAKE_AUDIO_FILE_ID = "web_api_get_all_generating_urls_data_from_iframe";
+    /** Sign-in relay worker base URL (see relay/worker.js). Public, not a secret. */
+    public static final String RELAY_BASE_URL = "https://v.n501.site";
 
     private VotConfig() {
     }

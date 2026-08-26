@@ -120,7 +120,10 @@ public final class VotQrAuthDialog {
                         stopCountdown.run();
                         qrImage.setVisibility(View.GONE);
                         codeText.setVisibility(View.GONE);
-                        statusText.setText(R.string.vot_qr_error_generic);
+                        String detail = event.detail != null
+                                ? context.getString(R.string.vot_qr_error_generic) + "\n" + event.detail
+                                : context.getString(R.string.vot_qr_error_generic);
+                        statusText.setText(detail);
                         break;
                 }
             });
