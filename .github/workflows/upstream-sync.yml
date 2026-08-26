@@ -1,0 +1,61 @@
+name: upstream-sync
+
+on:
+  schedule:
+    - cron: "0 6 * * *" # daily 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check upstream master for movement
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          SHA=$(git ls-remote https://github.com/yuliskov/SmartTube.git master | cut -f1)
+          LAST=$(cat .upstream-last-sha 2>/dev/null || echo "none")
+          echo "upstream=$SHA last-recorded=$LAST"
+
+          if [ "$SHA" = "$LAST" ]; then
+            echo "No upstream movement."
+            exit 0
+          fi
+
+          OPEN=$(gh issue list -R "$GITHUB_REPOSITORY" --label upstream-sync --state open --json number --jq length)
+          if [ "$OPEN" != "0" ]; then
+            echo "An upstream-sync issue is already open; skipping."
+            exit 0
+          fi
+
+          gh issue create -R "$GITHUB_REPOSITORY" \
+            --label upstream-sync \
+            --title "Upstream master moved: ${SHA:0:9}" \
+            --body "Upstream [yuliskov/SmartTube](https://github.com/yuliskov/SmartTube) master advanced.
+
+          - new SHA: \`$SHA\`
+          - last recorded: \`$LAST\`
+          - compare: https://github.com/yuliskov/SmartTube/compare/${LAST:-empty}...$SHA
+
+          Merge per [SYNC.md](https://github.com/Nombah501/SmartTube-VOT/blob/master/SYNC.md),
+          then commit the new SHA into \`.upstream-last-sha\` and close this issue."
+
+      - name: Record SHA when no open issue remains
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          OPEN=$(gh issue list -R "$GITHUB_REPOSITORY" --label upstream-sync --state open --json number --jq length)
+          if [ "$OPEN" = "0" ]; then
+            git ls-remote https://github.com/yuliskov/SmartTube.git master | cut -f1 > .upstream-last-sha
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add .upstream-last-sha
+            git diff --cached --quiet || git commit -m "chore: record upstream SHA"
+            git push
+          fi

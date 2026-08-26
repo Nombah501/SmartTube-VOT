@@ -100,8 +100,15 @@ public class VotData extends SharedPreferencesBase {
         putString(RELAY_URL, url == null ? "" : url.trim());
     }
 
-    public float getOriginalVolumeMultiplier() {
-        return getOriginalVolumePercent() / 100f;
+    /**
+     * Perceptual duck factor for the original track: (pct/100)^2.
+     * Linear percent reads far too loud for speech-under-speech; the square
+     * puts the 15% default at ~−33 dB amplitude while keeping the upper
+     * half of the slider usable.
+     */
+    public float getOriginalDuckFactor() {
+        float p = getOriginalVolumePercent() / 100f;
+        return p * p;
     }
 
     public float getTranslationVolumeMultiplier() {

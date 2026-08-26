@@ -41,18 +41,21 @@ public class VoiceTranslateController extends BasePlayerController {
     private static final long SYNC_THRESHOLD_MS = 800;
     private static final long AUTO_TRANSLATE_RETRY_MS = 1000;
     private static final int AUTO_TRANSLATE_MAX_RETRIES = 20;
+    private static final float VOLUME_EPSILON = 0.02f;
 
     private VotData mVotData;
     private VotClient mVotClient;
     private TranslationAudioPlayer mTranslationPlayer;
     private Disposable mTranslationDisposable;
     private float mSavedMainVolume = 1f;
+    private boolean mDucking;
     private FormatItem mSavedAudioFormat;
     private boolean mUserArmed;
     private boolean mArmed;
     private int mState = STATE_OFF;
     private int mPendingEtaSec;
     private boolean mPendingToastShown;
+
     private String mPendingVideoUrl;
     private String mCurrentVideoId;
     private int mAutoTranslateRetryCount;
@@ -487,14 +490,36 @@ public class VoiceTranslateController extends BasePlayerController {
         if (Math.abs(mainPos - transPos) > SYNC_THRESHOLD_MS) {
             mTranslationPlayer.seekTo(mainPos);
         }
+        adoptMasterVolumeChange();
+    }
+
+    /**
+     * Master volume can change mid-playback (sound-off dialog, remote volume keys)
+     * bypassing the duck. When the player volume matches neither the ducked level
+     * nor the snapshot, treat the new value as the master and re-duck.
+     */
+    private void adoptMasterVolumeChange() {
+        if (!mDucking || getPlayer() == null) {
+            return;
+        }
+        float current = getPlayer().getVolume();
+        float ducked = mSavedMainVolume * votData().getOriginalDuckFactor();
+        if (Math.abs(current - ducked) > VOLUME_EPSILON
+                && Math.abs(current - mSavedMainVolume) > VOLUME_EPSILON) {
+            mSavedMainVolume = current;
+            getPlayer().setVolume(mSavedMainVolume * votData().getOriginalDuckFactor());
+        }
     }
 
     private void duckMainAudio() {
         if (getPlayer() == null) {
             return;
         }
-        mSavedMainVolume = getPlayer().getVolume();
-        getPlayer().setVolume(votData().getOriginalVolumeMultiplier());
+        if (!mDucking) {
+            mSavedMainVolume = getPlayer().getVolume();
+            mDucking = true;
+        }
+        getPlayer().setVolume(mSavedMainVolume * votData().getOriginalDuckFactor());
     }
 
     /** Re-apply current volume mix to the running players (mix dialog changes). */
@@ -505,15 +530,14 @@ public class VoiceTranslateController extends BasePlayerController {
         if (mTranslationPlayer != null) {
             mTranslationPlayer.setVolume(votData().getTranslationVolumeMultiplier());
         }
-        if (getPlayer() != null) {
-            getPlayer().setVolume(votData().getOriginalVolumeMultiplier());
-        }
+        duckMainAudio();
     }
 
     private void restoreMainVolume() {
-        if (getPlayer() != null) {
+        if (mDucking && getPlayer() != null) {
             getPlayer().setVolume(mSavedMainVolume);
         }
+        mDucking = false;
     }
 
     private void cancelTranslationJob() {
