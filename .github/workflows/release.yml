@@ -1,0 +1,74 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Restore signing key
+        env:
+          SMARTTUBE_KEYSTORE_B64: ${{ secrets.SMARTTUBE_KEYSTORE_B64 }}
+        run: echo "$SMARTTUBE_KEYSTORE_B64" | base64 -d > smarttube-vot.keystore
+
+      - name: Create keystore.properties
+        env:
+          SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
+          SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
+          SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
+        run: |
+          cat > keystore.properties <<EOF
+          storeFile=../smarttube-vot.keystore
+          storePassword=$SIGNING_STORE_PASSWORD
+          keyAlias=$SIGNING_KEY_ALIAS
+          keyPassword=$SIGNING_KEY_PASSWORD
+          EOF
+
+      - name: Build release APKs
+        run: ./gradlew assembleStstableRelease --no-daemon
+
+      - name: Collect renamed assets
+        run: |
+          mkdir -p dist
+          cd smarttubetv/build/outputs/apk/ststable/release
+          for f in SmartTube_stable_*_*.apk; do
+            case "$f" in
+              *_arm64-v8a.apk)  cp "$f" ../../../../../dist/SmartTube_stable_arm64-v8a.apk ;;
+              *_armeabi-v7a.apk) cp "$f" ../../../../../dist/SmartTube_stable_armeabi-v7a.apk ;;
+              *_x86.apk)        cp "$f" ../../../../../dist/SmartTube_stable_x86.apk ;;
+              *_universal.apk)  cp "$f" ../../../../../dist/SmartTube_stable_universal.apk ;;
+            esac
+          done
+          ls -lh ../../../../../dist/
+
+      - name: Upload to release (tag push only)
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "$GITHUB_REF_NAME" dist/*.apk -R "$GITHUB_REPOSITORY" --clobber
+
+      - name: Upload as workflow artifact (manual run)
+        if: github.ref_type != 'tag'
+        uses: actions/upload-artifact@v4
+        with:
+          name: apks
+          path: dist/
