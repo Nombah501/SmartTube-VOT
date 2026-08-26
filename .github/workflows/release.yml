@@ -48,17 +48,17 @@ jobs:
 
       - name: Collect renamed assets
         run: |
-          mkdir -p dist
+          mkdir -p "$GITHUB_WORKSPACE/dist"
           cd smarttubetv/build/outputs/apk/ststable/release
           for f in SmartTube_stable_*_*.apk; do
             case "$f" in
-              *_arm64-v8a.apk)  cp "$f" ../../../../../dist/SmartTube_stable_arm64-v8a.apk ;;
-              *_armeabi-v7a.apk) cp "$f" ../../../../../dist/SmartTube_stable_armeabi-v7a.apk ;;
-              *_x86.apk)        cp "$f" ../../../../../dist/SmartTube_stable_x86.apk ;;
-              *_universal.apk)  cp "$f" ../../../../../dist/SmartTube_stable_universal.apk ;;
+              *_arm64-v8a.apk)   cp "$f" "$GITHUB_WORKSPACE/dist/SmartTube_stable_arm64-v8a.apk" ;;
+              *_armeabi-v7a.apk) cp "$f" "$GITHUB_WORKSPACE/dist/SmartTube_stable_armeabi-v7a.apk" ;;
+              *_x86.apk)         cp "$f" "$GITHUB_WORKSPACE/dist/SmartTube_stable_x86.apk" ;;
+              *_universal.apk)   cp "$f" "$GITHUB_WORKSPACE/dist/SmartTube_stable_universal.apk" ;;
             esac
           done
-          ls -lh ../../../../../dist/
+          ls -lh "$GITHUB_WORKSPACE/dist/"
 
       - name: Upload to release (tag push only)
         if: github.ref_type == 'tag'
