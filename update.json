@@ -5,6 +5,17 @@
         "downloadUrlList_x86": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_x86.apk"],
         "downloadUrlList": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_universal.apk"]
     },
+    "32.45": {
+        "versionCode": 2435,
+        "changelog": [
+            "Synced with upstream 32.44",
+            "Includes upstream playback, buffering and network fixes"
+        ],
+        "changelog_ru": [
+            "Синхронизация с upstream 32.44",
+            "Фиксы воспроизведения, буферизации и сетевого движка"
+        ]
+    },
     "32.32": {
         "versionCode": 2422,
         "changelog": [
