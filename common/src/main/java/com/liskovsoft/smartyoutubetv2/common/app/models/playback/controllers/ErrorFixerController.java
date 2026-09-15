@@ -50,13 +50,14 @@ public class ErrorFixerController extends BasePlayerController implements OnLong
             disableSubtitles();
             mVideoLoaderController.reloadVideo();
         } else if (!mBufferingDetector.isPlayable()) {
-            if (getPlayerTweaksData().getPlayerDataSource() != PlayerTweaksData.PLAYER_DATA_SOURCE_OKHTTP
-                && getPlayerTweaksData().getPreferredDnsType() != PlayerTweaksData.DNS_TYPE_SYSTEM
-                && !getPlayerTweaksData().isNetworkErrorFixingDisabled()) {
+            boolean isGoogleDns = getPlayerTweaksData().getPlayerDataSource() == PlayerTweaksData.PLAYER_DATA_SOURCE_OKHTTP
+                    && getPlayerTweaksData().getPreferredDnsType() == PlayerTweaksData.DNS_TYPE_GOOGLE;
+            if (!isGoogleDns && !getPlayerTweaksData().isNetworkErrorFixingDisabled()) {
                 // Wrong DNS resolution could cause hanging at start
                 // Do switch to only engine that respects custom DNS settings
-                MessageHelpers.showLongMessage(getContext(), "Switching to OkHttp network engine...");
+                MessageHelpers.showLongMessage(getContext(), "Fixing wrong DNS resolution...");
                 getPlayerTweaksData().setPlayerDataSource(PlayerTweaksData.PLAYER_DATA_SOURCE_OKHTTP);
+                getPlayerTweaksData().setPreferredDnsType(PlayerTweaksData.DNS_TYPE_GOOGLE);
                 mVideoLoaderController.restartEngine();
             } else {
                 // Also, some clients like ANDROID_REEL may just hang at start
@@ -64,14 +65,13 @@ public class ErrorFixerController extends BasePlayerController implements OnLong
                 YouTubeServiceManager.instance().switchNextClientNow();
                 mVideoLoaderController.reloadVideo();
             }
-        } else if (!getPlayerTweaksData().isNetworkErrorFixingDisabled()) {
-            // Possibly ISP ban
-            //switchNextEngine();
-            //mVideoLoaderController.restartEngine();
-
+        } else {
             // NOTE: The bug. Avoid calling reloadVideo() after lowering the quality.
             // This will change current format to 'Disabled'. Do restartEngine() instead.
-            lowerVideoQuality();
+            //lowerVideoQuality();
+            //mVideoLoaderController.restartEngine();
+
+            // SABR may hang if the server issues a high backoffTime
             mVideoLoaderController.restartEngine();
         }
     }
