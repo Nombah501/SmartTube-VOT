@@ -25,10 +25,7 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
         with:
-          packages: |
-            platform-tools
-            platforms;android-34
-            build-tools;30.0.3
+          packages: platform-tools platforms;android-34 build-tools;30.0.3
 
       - name: Restore signing key
         env:
