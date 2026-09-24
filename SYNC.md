@@ -3,15 +3,16 @@
 This fork tracks upstream master. Strategy: **merge, never rebase** (rebase
 would force-push and re-conflict the same files every time).
 
-## Facts (verified 2026-09-16)
+## Current sync target (2026-09-24)
 
-- Last merged upstream: `39e6a52f0af96385dae6dc39bb91e909739818fd`.
-- Upstream master at that merge: version 32.48 / versionCode 2438.
-- Fork release after the merge: version 32.49 / versionCode 2439.
-- The current merge-base with upstream is the recorded upstream SHA above.
+- Upstream master: `9336539b3db340c7bcf55f95afad44d1d1abb7e4` (after
+  upstream 32.56, versionCode 2446).
+- Fork version after integration: 32.57 / versionCode 2447.
+- `.upstream-last-sha` records the exact upstream commit included in the
+  merge; the merge-base should match it after committing the merge.
 - VOT is ours-only in `common/.../vot/*`, the VOT controller/dialogs,
   `relay/*`, and `update.json`.
-- This merge had one textual conflict: `smarttubetv/build.gradle`.
+- This sync has one textual conflict: `smarttubetv/build.gradle`.
 - The recurring integration touchpoints are:
   - `common/.../app/models/playback/manager/PlayerUI.java`
   - `common/.../app/presenters/PlaybackPresenter.java`

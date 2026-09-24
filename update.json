@@ -5,6 +5,18 @@
         "downloadUrlList_x86": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_x86.apk"],
         "downloadUrlList": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_universal.apk"]
     },
+    "32.57": {
+        "versionCode": 2447,
+        "changelog": [
+            "Synced with upstream 32.56 and subsequent screensaver and player fixes",
+            "Restores Not interested and Don't recommend channel actions"
+        ],
+        "changelog_ru": [
+            "Синхронизация с upstream 32.56 и последующими исправлениями заставки и плеера",
+            "Восстановлены действия «Не интересно» и «Не рекомендовать канал»"
+        ]
+    },
+
     "32.54": {
         "versionCode": 2444,
         "changelog": [
