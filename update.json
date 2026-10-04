@@ -5,6 +5,18 @@
         "downloadUrlList_x86": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_x86.apk"],
         "downloadUrlList": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_universal.apk"]
     },
+    "32.60": {
+        "versionCode": 2450,
+        "changelog": [
+            "Synced with upstream 32.59",
+            "Includes YouTube Mix autoplay, SABR subtitle recovery and MediaServiceCore playback fixes"
+        ],
+        "changelog_ru": [
+            "Синхронизация с upstream 32.59",
+            "Исправления автопроигрывания YouTube Mix, восстановления после ошибок субтитров SABR и воспроизведения MediaServiceCore"
+        ]
+    },
+
     "32.59": {
         "versionCode": 2449,
         "changelog": [

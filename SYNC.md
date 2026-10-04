@@ -3,16 +3,16 @@
 This fork tracks upstream master. Strategy: **merge, never rebase** (rebase
 would force-push and re-conflict the same files every time).
 
-## Current sync target (2026-09-24)
+## Current sync target (2026-10-04)
 
-- Upstream master: `9336539b3db340c7bcf55f95afad44d1d1abb7e4` (after
-  upstream 32.56, versionCode 2446).
-- Fork version after integration: 32.57 / versionCode 2447.
+- Upstream master: `65b1e53fabb5ec4032f5f31cd0c493bc9bc6fab3`
+  (upstream 32.59, versionCode 2449).
+- Fork version after integration: 32.60 / versionCode 2450.
 - `.upstream-last-sha` records the exact upstream commit included in the
   merge; the merge-base should match it after committing the merge.
 - VOT is ours-only in `common/.../vot/*`, the VOT controller/dialogs,
   `relay/*`, and `update.json`.
-- This sync has one textual conflict: `smarttubetv/build.gradle`.
+- This sync has one textual conflict: `README.md`; retain the fork documentation.
 - The recurring integration touchpoints are:
   - `common/.../app/models/playback/manager/PlayerUI.java`
   - `common/.../app/presenters/PlaybackPresenter.java`
@@ -27,6 +27,20 @@ would force-push and re-conflict the same files every time).
 - Sync is triggered by upstream master SHA, not release tags. The workflow
   opens an issue when upstream moves; the merge commit updates
   `.upstream-last-sha`.
+
+### Verification of this sync
+
+- `:smarttubetv:assembleStstableDebug` passed with JDK 17, producing all four ABI APKs.
+- `SuggestionsControllerTest` passed with a temporary Java 11 test runtime.
+  The existing Robolectric instrumentation fails on JDK 17 with
+  `Unsupported class file major version 61`; no project dependencies were changed.
+- The universal APK installed and opened `PlaybackActivity` on Android 34.
+  Full playback/VOT audio verification remains unconfirmed: format requests
+  failed with `unexpected end of stream` both in this build and in the
+  previously published 32.59 APK on the same emulator.
+- VOT hooks, ETA forwarding, settings and preference migration slot 61 are unchanged.
+- This integration is local; publishing `update.json` must accompany the matching
+  release APKs so the updater does not advertise a version unavailable for download.
 
 ## Merge procedure
 
