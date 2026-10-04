@@ -39,8 +39,8 @@ would force-push and re-conflict the same files every time).
   failed with `unexpected end of stream` both in this build and in the
   previously published 32.59 APK on the same emulator.
 - VOT hooks, ETA forwarding, settings and preference migration slot 61 are unchanged.
-- This integration is local; publishing `update.json` must accompany the matching
-  release APKs so the updater does not advertise a version unavailable for download.
+- Publish the matching release APKs before pushing the updated `update.json`,
+  so the updater does not advertise a version unavailable for download.
 
 ## Merge procedure
 
