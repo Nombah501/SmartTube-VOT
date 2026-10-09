@@ -3,16 +3,16 @@
 This fork tracks upstream master. Strategy: **merge, never rebase** (rebase
 would force-push and re-conflict the same files every time).
 
-## Current sync target (2026-10-04)
+## Current sync target (2026-10-09)
 
-- Upstream master: `65b1e53fabb5ec4032f5f31cd0c493bc9bc6fab3`
-  (upstream 32.59, versionCode 2449).
-- Fork version after integration: 32.60 / versionCode 2450.
+- Upstream master: `f18f785142dd781681bfd613e95c22fd327f27d1`
+  (upstream 32.64, versionCode 2454).
+- Fork version after integration: 32.65 / versionCode 2455.
 - `.upstream-last-sha` records the exact upstream commit included in the
   merge; the merge-base should match it after committing the merge.
 - VOT is ours-only in `common/.../vot/*`, the VOT controller/dialogs,
   `relay/*`, and `update.json`.
-- This sync has one textual conflict: `README.md`; retain the fork documentation.
+- This sync has one textual conflict: `smarttubetv/build.gradle`; apply the fork version policy.
 - The recurring integration touchpoints are:
   - `common/.../app/models/playback/manager/PlayerUI.java`
   - `common/.../app/presenters/PlaybackPresenter.java`
@@ -28,19 +28,24 @@ would force-push and re-conflict the same files every time).
   opens an issue when upstream moves; the merge commit updates
   `.upstream-last-sha`.
 
-### Verification of this sync
+### Integration status and verification
 
-- `:smarttubetv:assembleStstableDebug` passed with JDK 17, producing all four ABI APKs.
-- `SuggestionsControllerTest` passed with a temporary Java 11 test runtime.
-  The existing Robolectric instrumentation fails on JDK 17 with
-  `Unsupported class file major version 61`; no project dependencies were changed.
-- The universal APK installed and opened `PlaybackActivity` on Android 34.
-  Full playback/VOT audio verification remains unconfirmed: format requests
-  failed with `unexpected end of stream` both in this build and in the
-  previously published 32.59 APK on the same emulator.
-- VOT hooks, ETA forwarding, settings and preference migration slot 61 are unchanged.
-- Publish the matching release APKs before pushing the updated `update.json`,
-  so the updater does not advertise a version unavailable for download.
+- `MediaServiceCore` is pinned to `240321a55f8bef7e407658949170242318be6731`;
+  recursive submodules were initialized. `SharedModules` remains at
+  `13f5687dd6757b02fbcdf14c5403d0339e377db5` in both locations.
+- Upstream adds SABR player-response reload handling, including the reload token
+  bridge from ExoPlayer through `ErrorFixerController` to `MediaServiceCore`.
+- MediaServiceCore's `AppServiceInt` / `AppServiceIntCached` rename to
+  `AppServiceCore` / `AppServiceCoreCached` and Web/TV PoToken provider changes
+  are internal to the submodule; the fork integration uses the retained public APIs.
+- Fork README, VOT hooks, ETA forwarding, settings, resources and preference
+  migration slot 61 are unchanged.
+- No build, tests or runtime smoke checks were run during integration. Final
+  validation must build `:smarttubetv:assembleStstableDebug` with JDK 17 and
+  exercise VOT playback, volume mix, QR sign-in and update discovery.
+- This integration does not push, tag or publish a release. Publish the matching
+  release APKs before pushing the updated `update.json`, so the updater does not
+  advertise a version unavailable for download.
 
 ## Merge procedure
 
