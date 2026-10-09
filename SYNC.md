@@ -40,9 +40,13 @@ would force-push and re-conflict the same files every time).
   are internal to the submodule; the fork integration uses the retained public APIs.
 - Fork README, VOT hooks, ETA forwarding, settings, resources and preference
   migration slot 61 are unchanged.
-- No build, tests or runtime smoke checks were run during integration. Final
-  validation must build `:smarttubetv:assembleStstableDebug` with JDK 17 and
-  exercise VOT playback, volume mix, QR sign-in and update discovery.
+- Final validation: `:smarttubetv:assembleStstableDebug` succeeded with JDK 17
+  (479 tasks; 34 executed). Generated universal, arm64-v8a, armeabi-v7a and x86 APKs.
+- `aapt dump badging` confirmed the universal APK is `org.smarttube.stable`,
+  version 32.65 / code 2455; the update manifest and upstream marker agree.
+- Independent source review found no concrete integration regression.
+- Runtime playback, SABR recovery, VOT volume mix, QR sign-in and update discovery
+  remain unverified: `adb devices -l` listed no connected device.
 - This integration does not push, tag or publish a release. Publish the matching
   release APKs before pushing the updated `update.json`, so the updater does not
   advertise a version unavailable for download.
