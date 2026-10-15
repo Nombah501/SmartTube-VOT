@@ -47,9 +47,11 @@ would force-push and re-conflict the same files every time).
   with JDK 17.
 - Runtime playback, SABR recovery, VOT volume mix, QR sign-in and update discovery
   remain unverified: `adb devices -l` listed no connected device.
-- `update.json` is unchanged: no 32.68 APKs are published. Note: it already
-  advertises 32.65 while the latest GitHub release is v32.60; publish v32.65+
-  (or the 32.68 release) to make the manifest consistent.
+- Release [v32.68](https://github.com/Nombah501/SmartTube-VOT/releases/tag/v32.68)
+  is published as Latest; the release workflow uploaded arm64-v8a, armeabi-v7a,
+  x86 and universal APKs. Every `update.json` download link serves
+  `org.smarttube.stable` 32.68 / 2458, signed with the same certificate as v32.60.
+  32.65 was never released; 32.68 supersedes it.
 
 ## Merge procedure
 

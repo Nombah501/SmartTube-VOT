@@ -5,6 +5,19 @@
         "downloadUrlList_x86": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_x86.apk"],
         "downloadUrlList": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_universal.apk"]
     },
+    "32.68": {
+        "versionCode": 2458,
+        "changelog": [
+            "Synced with upstream 32.67",
+            "SABR backoff handling, CDN failover on stalled networks and seek retry",
+            "SABR errors now reload the video instead of restarting the player"
+        ],
+        "changelog_ru": [
+            "Синхронизация с upstream 32.67",
+            "SABR: обработка backoff, переключение CDN при зависании сети, повтор перемотки",
+            "При ошибках SABR видео перезагружается вместо перезапуска плеера"
+        ]
+    },
     "32.65": {
         "versionCode": 2455,
         "changelog": [
