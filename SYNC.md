@@ -7,8 +7,7 @@ would force-push and re-conflict the same files every time).
 
 - Upstream master: `3edc9d57535dc1a8a8ee2e9fea4c404e3ef86ad8`
   (upstream 32.68, versionCode 2458).
-- Fork version after integration: 32.69 / versionCode 2459. `update.json`
-  still advertises the published 32.68 until 32.69 APKs are released.
+- Fork version after integration: 32.69 / versionCode 2459.
 - `.upstream-last-sha` records the exact upstream commit included in the
   merge; the merge-base should match it after committing the merge.
 - VOT is ours-only in `common/.../vot/*`, the VOT controller/dialogs,
@@ -45,8 +44,10 @@ would force-push and re-conflict the same files every time).
 - Validation: `:smarttubetv:assembleStstableDebug` with JDK 17.
 - Runtime playback, SABR recovery, VOT volume mix, QR sign-in and update discovery
   remain unverified without a connected device.
-- Latest published release is
-  [v32.68](https://github.com/Nombah501/SmartTube-VOT/releases/tag/v32.68).
+- Release [v32.69](https://github.com/Nombah501/SmartTube-VOT/releases/tag/v32.69)
+  is published as Latest; the release workflow uploaded arm64-v8a, armeabi-v7a,
+  x86 and universal APKs. Every `update.json` download link serves
+  `org.smarttube.stable` 32.69 / 2459, signed with the same certificate as v32.60.
 
 ## Merge procedure
 

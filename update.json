@@ -5,6 +5,19 @@
         "downloadUrlList_x86": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_x86.apk"],
         "downloadUrlList": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_universal.apk"]
     },
+    "32.69": {
+        "versionCode": 2459,
+        "changelog": [
+            "Synced with upstream 32.68",
+            "Fixed startup crash on some Android 9 devices (lazy WorkManager init)",
+            "DNS auto-fix now restarts the app; MStar OMX.MS decoders treated as hardware"
+        ],
+        "changelog_ru": [
+            "Синхронизация с upstream 32.68",
+            "Исправлено падение при запуске на некоторых Android 9 (ленивая инициализация WorkManager)",
+            "Автофикс DNS перезапускает приложение; декодеры MStar OMX.MS считаются аппаратными"
+        ]
+    },
     "32.68": {
         "versionCode": 2458,
         "changelog": [
