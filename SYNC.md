@@ -3,18 +3,17 @@
 This fork tracks upstream master. Strategy: **merge, never rebase** (rebase
 would force-push and re-conflict the same files every time).
 
-## Current sync target (2026-10-16)
+## Current sync target (2026-10-22)
 
-- Upstream master: `615ddecb19106bb58b2d35935f3d1b1d3de970bc`
-  (upstream 32.67, versionCode 2457).
-- Fork version after integration: 32.68 / versionCode 2458.
+- Upstream master: `3edc9d57535dc1a8a8ee2e9fea4c404e3ef86ad8`
+  (upstream 32.68, versionCode 2458).
+- Fork version after integration: 32.69 / versionCode 2459. `update.json`
+  still advertises the published 32.68 until 32.69 APKs are released.
 - `.upstream-last-sha` records the exact upstream commit included in the
   merge; the merge-base should match it after committing the merge.
 - VOT is ours-only in `common/.../vot/*`, the VOT controller/dialogs,
   `relay/*`, and `update.json`.
-- This sync has two textual conflicts: `README.md` (fork README kept; upstream
-  only added a TubeBeam casting note) and `smarttubetv/build.gradle` (fork
-  version policy).
+- This sync merged without textual conflicts.
 - The recurring integration touchpoints are:
   - `common/.../app/models/playback/manager/PlayerUI.java`
   - `common/.../app/presenters/PlaybackPresenter.java`
@@ -32,26 +31,22 @@ would force-push and re-conflict the same files every time).
 
 ### Integration status and verification
 
-- `MediaServiceCore` is pinned to `7f36935513f55ba3f76f40427b339146a5b52f13`;
-  `SharedModules` is at `890f94fcda4b3b11eeea161b7ceb06e27ac0bfe9` in both locations.
-- Upstream renames `ReloadPlayerResponseError` to `SabrReloadPlayerError`, adds
-  `SabrBackoffError`, SABR CDN failover for stalled networks and seek retry.
-  `ErrorFixerController` now handles SABR backoff and long SABR buffering with
-  `reloadVideo()` instead of `restartEngine()`. `reloadVideo()` dispatches
-  `onNewVideo(sameVideo)`, so `VoiceTranslateController` cancels the job, releases
-  translation audio, restores volume and re-arms according to the manual state.
+- `MediaServiceCore` is pinned to `63b2397751eb82dddb6fb4d2d699ca153a3579f6`;
+  `SharedModules` is at `d4f09b11133036d90826baf012e120d06486ae73` in both locations.
+- Upstream adds `SafeWorkManager` with lazy WorkManager init
+  (`MainApplication implements Configuration.Provider`, startup initializer
+  removed in the manifest), restarts the app after the DNS fix, resets the
+  buffering detector on engine errors, treats MStar `OMX.MS.` decoders as
+  hardware, removes `GeneralData.isHistoryEnabled/setHistoryEnabled`, renames
+  MediaServiceCore `VideoInfoType` to client type and adds Georgian strings.
+  No fork/VOT code used the removed or renamed APIs.
 - Fork README, VOT hooks, ETA forwarding, settings, resources and preference
   migration slot 61 are unchanged.
-- Validation: `:smarttubetv:assembleStstableDebug` and
-  `:exoplayer-library-sabr:testStstableDebugUnitTest --tests '*SabrCdnSelectorTest*'`
-  with JDK 17.
+- Validation: `:smarttubetv:assembleStstableDebug` with JDK 17.
 - Runtime playback, SABR recovery, VOT volume mix, QR sign-in and update discovery
-  remain unverified: `adb devices -l` listed no connected device.
-- Release [v32.68](https://github.com/Nombah501/SmartTube-VOT/releases/tag/v32.68)
-  is published as Latest; the release workflow uploaded arm64-v8a, armeabi-v7a,
-  x86 and universal APKs. Every `update.json` download link serves
-  `org.smarttube.stable` 32.68 / 2458, signed with the same certificate as v32.60.
-  32.65 was never released; 32.68 supersedes it.
+  remain unverified without a connected device.
+- Latest published release is
+  [v32.68](https://github.com/Nombah501/SmartTube-VOT/releases/tag/v32.68).
 
 ## Merge procedure
 
