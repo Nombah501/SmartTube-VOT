@@ -3,16 +3,17 @@
 This fork tracks upstream master. Strategy: **merge, never rebase** (rebase
 would force-push and re-conflict the same files every time).
 
-## Current sync target (2026-10-22)
+## Current sync target (2026-11-08)
 
-- Upstream master: `3edc9d57535dc1a8a8ee2e9fea4c404e3ef86ad8`
-  (upstream 32.68, versionCode 2458).
-- Fork version after integration: 32.69 / versionCode 2459.
+- Upstream master: `a945135eee6387cd6549b87604ad673944c06b5d`
+  (upstream 32.72, versionCode 2462; 59 incoming commits).
+- Fork source version after integration: 32.73 / versionCode 2463.
 - `.upstream-last-sha` records the exact upstream commit included in the
   merge; the merge-base should match it after committing the merge.
 - VOT is ours-only in `common/.../vot/*`, the VOT controller/dialogs,
   `relay/*`, and `update.json`.
-- This sync merged without textual conflicts.
+- Resolved conflicts in README, PlayerSettingsPresenter, PlayerTweaksData and
+  smarttubetv/build.gradle, preserving fork documentation and VOT integration.
 - The recurring integration touchpoints are:
   - `common/.../app/models/playback/manager/PlayerUI.java`
   - `common/.../app/presenters/PlaybackPresenter.java`
@@ -30,24 +31,51 @@ would force-push and re-conflict the same files every time).
 
 ### Integration status and verification
 
-- `MediaServiceCore` is pinned to `63b2397751eb82dddb6fb4d2d699ca153a3579f6`;
-  `SharedModules` is at `d4f09b11133036d90826baf012e120d06486ae73` in both locations.
-- Upstream adds `SafeWorkManager` with lazy WorkManager init
-  (`MainApplication implements Configuration.Provider`, startup initializer
-  removed in the manifest), restarts the app after the DNS fix, resets the
-  buffering detector on engine errors, treats MStar `OMX.MS.` decoders as
-  hardware, removes `GeneralData.isHistoryEnabled/setHistoryEnabled`, renames
-  MediaServiceCore `VideoInfoType` to client type and adds Georgian strings.
-  No fork/VOT code used the removed or renamed APIs.
-- Fork README, VOT hooks, ETA forwarding, settings, resources and preference
-  migration slot 61 are unchanged.
-- Validation: `:smarttubetv:assembleStstableDebug` with JDK 17.
-- Runtime playback, SABR recovery, VOT volume mix, QR sign-in and update discovery
-  remain unverified without a connected device.
-- Release [v32.69](https://github.com/Nombah501/SmartTube-VOT/releases/tag/v32.69)
-  is published as Latest; the release workflow uploaded arm64-v8a, armeabi-v7a,
-  x86 and universal APKs. Every `update.json` download link serves
-  `org.smarttube.stable` 32.69 / 2459, signed with the same certificate as v32.60.
+- `MediaServiceCore` is pinned to `db543d4d5d639cbf3084e3870b0dac6e4e2524a1`;
+  `SharedModules` is at `5b6b5d1d3ba670e3f89edef1d1394a7562251f2c` in both locations.
+- Upstream adds SABR live/past-live support and live-edge positioning, opt-in
+  DIAL discovery, queue insertion through intents, remote watched-progress fixes,
+  additional hardware decoder recognition, updated dialogs and translations.
+- Network settings move to General/Network. VOT stays in Player settings.
+  Preference slot 61 remains `mIsVotButtonMigrated`; live edge uses slot 62.
+  The SABR-live option is stored separately in MediaServiceCore.
+- Validation: `:smarttubetv:assembleStstableDebug --no-daemon` with JDK 17:
+  `BUILD SUCCESSFUL in 1m 58s`. All four debug APKs report
+  `org.smarttube.stable` 32.73 / 2463.
+- On an isolated Android 34 emulator, the 32.69 arm64 APK was upgraded with
+  `adb install -r` to 32.73 successfully. A VOT button deliberately disabled
+  before the upgrade remained disabled afterward (UI screenshot inspected).
+- Emulator live edge defaulted off independently of the VOT migration flag.
+  Enabling it, waiting for the preference debounce, and restarting persisted
+  slot 62 as true while slot 61 remained true. DIAL defaulted off.
+- Public video `jNQXAC9IVRw` played on the emulator: logcat reported
+  `ExoPlayerController: STATE_READY`, video/audio decoder output and
+  `SabrStream: StreamProtectionStatus status: OK`; playback screenshot inspected.
+  Suggestions/storyboard requests logged nonfatal null-result errors.
+- VOT activation/deactivation UI and seek were exercised during public-video
+  playback; the enabled toast and button state were observed, but successful
+  translated audio/ETA were not established. Do not treat this as end-to-end VOT.
+- The QR dialog opened, but relay TLS failed with `TLSV1_ALERT_INTERNAL_ERROR`
+  (10000438). Host `curl -I --max-time 20 https://v.n501.site/` also failed with
+  curl error 35 / TLS alert internal error. No account was linked; relay/auth
+  code is unchanged by this sync.
+- Existing JVM tests (`:common:testStstableDebugUnitTest`, SuggestionsControllerTest
+  and ScreensaverManagerTest) could not execute with installed JDK 17:
+  Robolectric 4.6.1 fails on ASM class-file major 61. A temporary ASM 9.2
+  runtime override exposed a second incompatibility, removed
+  `Unsafe.defineAnonymousClass`. The override was removed; no test dependency
+  changes are included. These tests are not reported as passing.
+- No physical TV is connected. Emulator checks do not prove hardware decoder,
+  real audio mix, live SABR recovery, or authenticated QR sign-in behavior.
+- No tag or release is created by this sync. `update.json` remains unchanged
+  at the published 32.69 / 2459 release; debug 32.73 APKs are not an update offer.
+- Review limitation: upstream gamepad `rewind`/`fastForward` bypasses the
+  timeline offset for SABR live streams with a non-zero DVR window start.
+  This is unmodified upstream behavior behind the default-off SABR-live
+  developer option; gamepad seeking on such streams remains unverified.
+- DIAL is default-off. When enabled it exposes unauthenticated SSDP/HTTP
+  discovery and pairing on the local network (ports 1900/8090); use only on
+  a trusted LAN. Actual discovery/pairing was not exercised.
 
 ## Merge procedure
 
@@ -65,10 +93,12 @@ Then, in order:
    `PlayerUI`, `PlaybackPresenter`, and `PlayerTweaksData`.
 3. **Build and smoke-test:** VOT on an EN video, live volume mix, QR sign-in,
    and in-app update discovery from `update.json`.
-4. **Update release metadata:** bump `smarttubetv/build.gradle` and add the
-   matching entry to `update.json`.
-5. **Record the exact merged upstream SHA** in `.upstream-last-sha`, commit,
-   push, and release.
+4. **Separate source and release metadata:** bump `smarttubetv/build.gradle`.
+   Keep `update.json` at the published APK version during a code-only sync.
+   Update it only after a separately requested release has published APKs and
+   every manifest URL has been checked for version, package and signing identity.
+5. **Record the exact merged upstream SHA** in `.upstream-last-sha`, commit and
+   push the verified synchronization. Tags and releases require a separate request.
 
 The sync workflow deliberately does not write `.upstream-last-sha`; recording
 the marker is part of the verified merge commit.

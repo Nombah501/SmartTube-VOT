@@ -110,6 +110,8 @@ cd SmartTube-VOT
 ## Credits
 
 - [yuliskov/SmartTube](https://github.com/yuliskov/SmartTube) — базовый плеер
+- [pixkk](https://github.com/pixkk) — SABR streaming и внутреннее устройство Innertube
+- [Jupiops](https://github.com/Jupiops) — поддержка SABR CDN
 - [mikhkz/SmartTube](https://github.com/mikhkz/SmartTube) — интеграция VOT ([PR #5817](https://github.com/yuliskov/SmartTube/pull/5817))
 - [ilyhalight/voice-over-translation](https://github.com/ilyhalight/voice-over-translation),
   [FOSWLY/vot-cli](https://github.com/FOSWLY/vot-cli),

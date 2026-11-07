@@ -57,11 +57,12 @@ public class ErrorFixerController extends BasePlayerController implements OnLong
             mVideoLoaderController.reloadVideo();
         } else if (isOfflineVideo() && !mBufferingDetector.isPlayable()) {
             int requiredEngine = PlayerTweaksData.PLAYER_DATA_SOURCE_OKHTTP;
-            int customDns = PlayerTweaksData.DNS_TYPE_IPV4;
+            int customDns = PlayerTweaksData.DNS_TYPE_GOOGLE;
             boolean isCustomEngineEnabled = getPlayerTweaksData().getPlayerDataSource() == requiredEngine;
             boolean isCustomDnsEnabled = getPlayerTweaksData().getPreferredDnsType() == customDns;
             boolean isCustomDnsActive = isCustomEngineEnabled && isCustomDnsEnabled;
-            if (!isCustomDnsActive && !getPlayerTweaksData().isNetworkErrorFixingDisabled()) {
+            if (getPlayer().getPositionMs() == 0 && !isCustomDnsActive && !getPlayerTweaksData().isNetworkErrorFixingDisabled()) {
+                // Exclude possible PoToken errors. Upon resume there's no 60 sec PoToken attestation window, so a resumed video fails instantly.
                 // Wrong DNS resolving could cause hanging at start
                 // Do switch to only engine that respects custom DNS settings
                 MessageHelpers.showLongMessage(getContext(), "Fixing incorrect DNS resolution. App restart needed...");
