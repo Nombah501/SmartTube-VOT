@@ -7,7 +7,8 @@ would force-push and re-conflict the same files every time).
 
 - Upstream master: `a945135eee6387cd6549b87604ad673944c06b5d`
   (upstream 32.72, versionCode 2462; 59 incoming commits).
-- Fork source version after integration: 32.73 / versionCode 2463.
+- Fork source version after integration: 32.73 / versionCode 2463;
+  relay migration maintenance version: 32.74 / versionCode 2464.
 - `.upstream-last-sha` records the exact upstream commit included in the
   merge; the merge-base should match it after committing the merge.
 - VOT is ours-only in `common/.../vot/*`, the VOT controller/dialogs,
@@ -68,16 +69,31 @@ would force-push and re-conflict the same files every time).
   runtime override exposed a second incompatibility, removed
   `Unsafe.defineAnonymousClass`. The override was removed; no test dependency
   changes are included. These tests are not reported as passing.
-- No physical TV is connected. Emulator checks do not prove hardware decoder,
-  real audio mix, live SABR recovery, or authenticated QR sign-in behavior.
+- At integration time no physical TV was connected. Emulator checks did not
+  prove hardware decoder, real audio mix, live SABR recovery, or authenticated
+  QR sign-in behavior; subsequent Fire TV QR diagnostics are recorded below.
 - Follow-up release [v32.73](https://github.com/Nombah501/SmartTube-VOT/releases/tag/v32.73)
-  is published as Latest from `01c79212328598326001193d507e00b31060219d`.
+  was published from `01c79212328598326001193d507e00b31060219d`.
   Release workflow `42495515736` succeeded and uploaded four APKs.
   All four were checked with aapt/apksigner: `org.smarttube.stable` 32.73 / 2463,
   certificate SHA-256 `6de965656c0c049c677981e6bfe6dda074ed0ac158c361661ed5c25d744ff7b8`
   matches the downloaded v32.69 release. Public manifest URLs were downloaded
   and byte-matched against these verified APKs before advertising 32.73 in
   `update.json`.
+- Real Fire TV AFTMM (Android 7.1.2/API 25) exposed a migration gap in 32.73:
+  saved `v.n501.site` without a scheme was not redirected. Correcting only the
+  saved endpoint produced a workers.dev QR with the original TLS provider;
+  the temporary Conscrypt diagnostic setting was restored to off.
+  Maintenance commit `fb67bfce7` also handles bare/http/https legacy hosts with
+  whitespace and trailing slashes, leaving custom endpoints and auth untouched.
+  Actual-getter smoke: 100 assertions passed; regression tests compile with
+  `:common:compileStstableDebugUnitTestJavaWithJavac` (BUILD SUCCESSFUL, 43s).
+  Robolectric runtime remains blocked by the previously documented JDK issue.
+- Maintenance release [v32.74](https://github.com/Nombah501/SmartTube-VOT/releases/tag/v32.74)
+  is Latest from `fb67bfce7bd90236d748618296f30308b840a8fd`.
+  Workflow `42498286539` succeeded. All four APKs report 32.74 / 2464 and
+  the same signing certificate as v32.73. All public manifest downloads
+  were byte-matched to the verified signed APKs before the manifest update.
 - Review limitation: upstream gamepad `rewind`/`fastForward` bypasses the
   timeline offset for SABR live streams with a non-zero DVR window start.
   This is unmodified upstream behavior behind the default-off SABR-live

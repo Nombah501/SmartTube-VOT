@@ -5,6 +5,17 @@
         "downloadUrlList_x86": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_x86.apk"],
         "downloadUrlList": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_universal.apk"]
     },
+    "32.74": {
+        "versionCode": 2464,
+        "changelog": [
+            "Fixed QR relay migration for saved legacy hostnames without https:// and with trailing slashes",
+            "Preserved custom relay addresses, OAuth tokens and settings"
+        ],
+        "changelog_ru": [
+            "Исправлена миграция QR relay для старого адреса без https:// и с завершающими слешами",
+            "Пользовательские адреса relay, OAuth-токены и настройки сохранены"
+        ]
+    },
     "32.73": {
         "versionCode": 2463,
         "changelog": [
