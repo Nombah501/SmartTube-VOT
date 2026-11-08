@@ -27,6 +27,11 @@ public class TranslationAudioPlayer implements Player.EventListener {
     @Nullable
     private OnReadyListener mOnReadyListener;
     private boolean mReadyFired;
+    private Runnable mOnErrorListener;
+
+    public void setOnErrorListener(Runnable listener) {
+        mOnErrorListener = listener;
+    }
 
     public TranslationAudioPlayer(Context context) {
         mContext = context.getApplicationContext();
@@ -47,7 +52,8 @@ public class TranslationAudioPlayer implements Player.EventListener {
             mPlayer.setPlaybackParameters(new PlaybackParameters(speed, 1f));
         }
         mPlayer.prepare(mediaSource);
-        mPlayer.setPlayWhenReady(true);
+        // The controller aligns position and main-player intent before enabling sound.
+        mPlayer.setPlayWhenReady(false);
         if (startPositionMs > 0) {
             mPlayer.seekTo(startPositionMs);
         }
@@ -118,6 +124,9 @@ public class TranslationAudioPlayer implements Player.EventListener {
 
     @Override
     public void onPlayerError(ExoPlaybackException error) {
-        Log.e(TAG, "Translation player error: %s", error.getMessage());
+        Log.e(TAG, "Translation player error");
+        if (mOnErrorListener != null) {
+            mOnErrorListener.run();
+        }
     }
 }

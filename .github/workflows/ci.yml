@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools platforms;android-34 build-tools;30.0.3
+      - name: Test release verification logic
+        run: python3 -m unittest discover -s .github/scripts -p 'test_*.py'
+      - name: Common unit tests
+        run: ./gradlew :common:testStstableDebugUnitTest --no-daemon
+      - name: Debug APKs
+        run: ./gradlew :smarttubetv:assembleStstableDebug --no-daemon
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: debug-apks-and-test-reports
+          if-no-files-found: error
+          path: |
+            smarttubetv/build/outputs/apk/ststable/debug/*.apk
+            common/build/test-results/
+            common/build/reports/tests/

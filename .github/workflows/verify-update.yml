@@ -1,0 +1,39 @@
+name: Verify published update
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: [release]
+    types: [completed]
+  push:
+    branches: [master]
+    paths: [update.json]
+  pull_request:
+    paths: [update.json]
+
+permissions:
+  contents: read
+
+jobs:
+  manifest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
+        with:
+          packages: platform-tools platforms;android-34 build-tools;30.0.3
+      - name: Check every manifest URL against highest announced version
+        run: python3 .github/scripts/verify_release.py manifest --manifest update.json --output manifest-verification.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: manifest-verification
+          path: manifest-verification.json
+          if-no-files-found: error

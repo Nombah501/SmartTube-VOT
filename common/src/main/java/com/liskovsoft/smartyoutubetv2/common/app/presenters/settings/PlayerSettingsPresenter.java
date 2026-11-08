@@ -228,6 +228,20 @@ public class PlayerSettingsPresenter extends BasePresenter<Void> {
         options.add(UiOptionItem.from(
                 appendPercent(getContext().getString(R.string.vot_translation_volume), mVotData.getTranslationVolumePercent()),
                 optionItem -> showVotVolumeSection(true)));
+        options.add(UiOptionItem.from(
+                appendState(getContext().getString(R.string.vot_pause_preparing),
+                        mVotData.isPauseWhilePreparingEnabled()), optionItem -> {
+                    List<OptionItem> toggles = new ArrayList<>();
+                    toggles.add(UiOptionItem.from(getContext().getString(R.string.vot_pause_preparing),
+                            getContext().getString(R.string.vot_pause_preparing_desc),
+                            item -> mVotData.setPauseWhilePreparingEnabled(item.isSelected()),
+                            mVotData.isPauseWhilePreparingEnabled()));
+                    showCheckedSubCategory(R.string.vot_pause_preparing, toggles);
+                }));
+        options.add(UiOptionItem.from(getContext().getString(R.string.vot_reset_playback),
+                optionItem -> AppDialogUtil.showVotResetDialog(getContext(), () -> {})));
+        options.add(UiOptionItem.from(getContext().getString(R.string.vot_diagnostics),
+                optionItem -> AppDialogUtil.showVotDiagnosticsDialog(getContext())));
 
         settingsPresenter.appendStringsCategory(getContext().getString(R.string.vot_settings_category), options);
     }
@@ -279,13 +293,23 @@ public class PlayerSettingsPresenter extends BasePresenter<Void> {
     }
 
     private void showVotVoiceSection() {
+        if (!mVotData.hasOAuthToken()) {
+            AppDialogPresenter presenter = AppDialogPresenter.instance(getContext());
+            presenter.appendSingleButton(UiOptionItem.from(
+                    getContext().getString(R.string.vot_lively_unavailable),
+                    optionItem -> showVotTokenSection()));
+            presenter.showDialog(getContext().getString(R.string.vot_lively_voice));
+            return;
+        }
         List<OptionItem> toggles = new ArrayList<>();
         toggles.add(UiOptionItem.from(
                 getContext().getString(R.string.vot_lively_voice),
                 getContext().getString(R.string.vot_lively_voice_desc),
                 optionItem -> {
                     if (optionItem.isSelected() && !mVotData.hasOAuthToken()) {
-                        MessageHelpers.showMessage(getContext(), R.string.vot_error_auth_required);
+                        mVotData.setLivelyVoiceEnabled(false);
+                        AppDialogUtil.showVotAuthRequiredDialog(getContext());
+                        return;
                     }
                     mVotData.setLivelyVoiceEnabled(optionItem.isSelected());
                 },

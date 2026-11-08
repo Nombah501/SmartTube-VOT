@@ -2,6 +2,9 @@ apply from: gradle.ext.sharedModulesConstants
 apply plugin: 'kotlin-android'
 apply plugin: 'com.android.library'
 
+def upstreamShaFile = rootProject.file('.upstream-last-sha')
+def upstreamSha = providers.fileContents(layout.file(providers.provider { upstreamShaFile })).asText.get().trim()
+
 android {
     // FIX: Default interface methods are only supported starting with Android N (--min-api 24)
     compileOptions {
@@ -18,6 +21,7 @@ android {
         targetSdkVersion project.properties.targetSdkVersion
         versionCode 10
         versionName "1.0"
+        buildConfigField 'String', 'UPSTREAM_SHA', groovy.json.JsonOutput.toJson(upstreamSha)
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles 'consumer-rules.pro'
@@ -56,7 +60,7 @@ dependencies {
 
     implementation 'androidx.appcompat:appcompat:' + appCompatXVersion
     testImplementation 'junit:junit:' + junitVersion
-    testImplementation 'org.robolectric:robolectric:' + robolectricVersion
+    testImplementation 'org.robolectric:robolectric:4.7.3'
 
     implementation project(':sharedutils')
     implementation project(':fragment-1.1.0')

@@ -86,4 +86,36 @@ public class VotDataTest {
         assertEquals("test-token", data.getOAuthToken());
         assertEquals(before, prefs.getAll());
     }
+    @Test
+    public void pauseDefaultsOffAndPersists() {
+        assertEquals(false, data.isPauseWhilePreparingEnabled());
+        data.setPauseWhilePreparingEnabled(true);
+        assertEquals(true, data.isPauseWhilePreparingEnabled());
+    }
+
+    @Test
+    public void resetOnlyPlaybackPreferencesAndIsIdempotent() {
+        data.setOAuthToken("secret-token");
+        data.setRelayUrl("https://custom.example");
+        prefs.edit().putString("unrelated_setting", "kept").commit();
+        data.setLivelyVoiceEnabled(true);
+        data.setAutoTranslateEnabled(true);
+        data.setPreferYoutubeAutoDub(true);
+        data.setPauseWhilePreparingEnabled(true);
+        data.setOriginalVolumePercent(90);
+        data.setTranslationVolumePercent(20);
+        for (int i = 0; i < 2; i++) {
+            data.resetPlaybackPreferences();
+            assertEquals(false, data.isLivelyVoiceEnabled());
+            assertEquals(false, prefs.getBoolean("use_lively_voice", true));
+            assertEquals(false, data.isAutoTranslateEnabled());
+            assertEquals(false, data.isPreferYoutubeAutoDub());
+            assertEquals(false, data.isPauseWhilePreparingEnabled());
+            assertEquals(15, data.getOriginalVolumePercent());
+            assertEquals(100, data.getTranslationVolumePercent());
+            assertEquals("secret-token", data.getOAuthToken());
+            assertEquals("https://custom.example", data.getRelayUrl());
+            assertEquals("kept", prefs.getString("unrelated_setting", ""));
+        }
+    }
 }

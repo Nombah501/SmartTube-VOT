@@ -4,73 +4,104 @@ on:
   push:
     tags: ["v*"]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing source tag containing this workflow and verifier
+        required: true
+        type: string
 
 permissions:
-  contents: write
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
     steps:
       - uses: actions/checkout@v4
         with:
+          ref: ${{ inputs.tag || github.ref }}
           submodules: recursive
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+          persist-credentials: false
+      - name: Validate source tag before accessing signing secrets
+        run: |
+          python3 - <<'PY'
+          import os, sys
+          sys.path.insert(0, '.github/scripts')
+          from verify_release import source_version, require
+          version, _ = source_version('smarttubetv/build.gradle')
+          require(os.environ['RELEASE_TAG'] == 'v' + version, 'tag/source version mismatch')
+          PY
+          test "$(git describe --tags --exact-match)" = "$RELEASE_TAG"
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: "17"
-
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v4
+          java-version: '17'
+      - uses: android-actions/setup-android@v4
         with:
           packages: platform-tools platforms;android-34 build-tools;30.0.3
-
-      - name: Restore signing key
+      - name: Restore signing configuration
         env:
           SMARTTUBE_KEYSTORE_B64: ${{ secrets.SMARTTUBE_KEYSTORE_B64 }}
-        run: echo "$SMARTTUBE_KEYSTORE_B64" | base64 -d > smarttube-vot.keystore
-
-      - name: Create keystore.properties
-        env:
           SIGNING_STORE_PASSWORD: ${{ secrets.SIGNING_STORE_PASSWORD }}
           SIGNING_KEY_ALIAS: ${{ secrets.SIGNING_KEY_ALIAS }}
           SIGNING_KEY_PASSWORD: ${{ secrets.SIGNING_KEY_PASSWORD }}
         run: |
-          cat > keystore.properties <<EOF
-          storeFile=../smarttube-vot.keystore
-          storePassword=$SIGNING_STORE_PASSWORD
-          keyAlias=$SIGNING_KEY_ALIAS
-          keyPassword=$SIGNING_KEY_PASSWORD
-          EOF
-
+          umask 077
+          printf '%s' "$SMARTTUBE_KEYSTORE_B64" | base64 -d > smarttube-vot.keystore
+          printf '%s\n' "storeFile=../smarttube-vot.keystore" "storePassword=$SIGNING_STORE_PASSWORD" "keyAlias=$SIGNING_KEY_ALIAS" "keyPassword=$SIGNING_KEY_PASSWORD" > keystore.properties
       - name: Build release APKs
-        run: ./gradlew assembleStstableRelease --no-daemon
-
-      - name: Collect renamed assets
+        run: ./gradlew :smarttubetv:assembleStstableRelease --no-daemon
+      - name: Collect exactly four named assets
         run: |
-          mkdir -p "$GITHUB_WORKSPACE/dist"
-          cd smarttubetv/build/outputs/apk/ststable/release
-          for f in SmartTube_stable_*_*.apk; do
-            case "$f" in
-              *_arm64-v8a.apk)   cp "$f" "$GITHUB_WORKSPACE/dist/SmartTube_stable_arm64-v8a.apk" ;;
-              *_armeabi-v7a.apk) cp "$f" "$GITHUB_WORKSPACE/dist/SmartTube_stable_armeabi-v7a.apk" ;;
-              *_x86.apk)         cp "$f" "$GITHUB_WORKSPACE/dist/SmartTube_stable_x86.apk" ;;
-              *_universal.apk)   cp "$f" "$GITHUB_WORKSPACE/dist/SmartTube_stable_universal.apk" ;;
-            esac
+          mkdir dist
+          for abi in arm64-v8a armeabi-v7a x86 universal; do
+            files=(smarttubetv/build/outputs/apk/ststable/release/SmartTube_stable_*_"$abi".apk)
+            test "${#files[@]}" -eq 1
+            cp "${files[0]}" "dist/SmartTube_stable_$abi.apk"
           done
-          ls -lh "$GITHUB_WORKSPACE/dist/"
-
-      - name: Upload to release (tag push only)
-        if: github.ref_type == 'tag'
+      - name: Validate artifacts before any upload (manifest may still announce old release)
+        run: python3 .github/scripts/verify_release.py artifacts --directory dist --tag "$RELEASE_TAG" --output dist/SHA256SUMS
+      - name: Attest validated APKs
+        id: provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: dist/*.apk
+      - name: Collect provenance bundle
+        env:
+          BUNDLE: ${{ steps.provenance.outputs.bundle-path }}
+        run: cp "$BUNDLE" dist/provenance.jsonl
+      - name: Upload immutable release assets (tag push only)
+        if: github.event_name == 'push'
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "$GITHUB_REF_NAME" dist/*.apk -R "$GITHUB_REPOSITORY" --clobber
-
-      - name: Upload as workflow artifact (manual run)
-        if: github.ref_type != 'tag'
-        uses: actions/upload-artifact@v4
+        run: gh release upload "$RELEASE_TAG" dist/*.apk dist/SHA256SUMS dist/provenance.jsonl -R "$GITHUB_REPOSITORY"
+      - name: Verify uploaded bytes from the selected release
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          downloaded="$(mktemp -d)"
+          gh release download "$RELEASE_TAG" -R "$GITHUB_REPOSITORY" --pattern '*.apk' --pattern SHA256SUMS --dir "$downloaded"
+          python3 .github/scripts/verify_release.py artifacts --directory "$downloaded" --tag "$RELEASE_TAG" --output "$downloaded/verified-SHA256SUMS"
+          cmp dist/SHA256SUMS "$downloaded/verified-SHA256SUMS"
+          cmp dist/SHA256SUMS "$downloaded/SHA256SUMS"
+      - uses: actions/upload-artifact@v4
         with:
-          name: apks
+          # Manual dispatch produces signed candidates only; it never publishes.
+          name: validated-release
           path: dist/
+          if-no-files-found: error
+      - name: Remove signing material
+        if: always()
+        run: rm -f smarttube-vot.keystore keystore.properties

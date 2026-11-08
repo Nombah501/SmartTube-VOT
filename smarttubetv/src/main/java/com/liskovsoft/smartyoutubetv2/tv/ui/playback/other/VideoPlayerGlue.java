@@ -255,6 +255,10 @@ public class VideoPlayerGlue extends MaxControlsVideoPlayerGlue<PlayerAdapter> i
 
     @Override
     public void onActionClicked(Action action) {
+        if (action instanceof PlaybackControlsRow.PlayPauseAction) {
+            if (isPlaying()) mActionListener.onPause();
+            else mActionListener.onPlay();
+        }
         if (!dispatchAction(action)) {
             // Super class handles play/pause and delegates to abstract methods next()/previous().
             super.onActionClicked(action);
@@ -266,15 +270,6 @@ public class VideoPlayerGlue extends MaxControlsVideoPlayerGlue<PlayerAdapter> i
         return dispatchLongClickAction(action);
     }
 
-    @Override
-    public void play() {
-        super.play();
-    }
-
-    @Override
-    public void pause() {
-        super.pause();
-    }
 
     @Override
     public void next() {

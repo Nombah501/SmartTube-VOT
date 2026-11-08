@@ -324,6 +324,16 @@
     <string name="vot_error_no_video">Нет видео для перевода</string>
     <string name="vot_error_generic">Не удалось получить перевод</string>
     <string name="vot_settings_category">Закадровый перевод (Яндекс)</string>
+    <string name="vot_pause_preparing">Пауза при подготовке перевода</string>
+    <string name="vot_pause_preparing_desc">Приостановить воспроизведение до готовности перевода. По умолчанию выключено.</string>
+    <string name="vot_lively_unavailable">Живой голос недоступен: войдите в Яндекс или укажите OAuth-токен</string>
+    <string name="vot_mix_range">0–100%%; по умолчанию %1$d%%</string>
+    <string name="vot_reset_playback">Сбросить настройки воспроизведения перевода</string>
+    <string name="vot_reset_confirm">Сбросить голос, автоперевод, выбор дубляжа, паузу и громкость (15% / 100%)? Авторизация и реле сохранятся.</string>
+    <string name="vot_diagnostics">Диагностика перевода</string>
+    <string name="vot_copy_diagnostics">Копировать диагностику</string>
+    <string name="vot_diagnostics_copied">Диагностика скопирована</string>
+    <string name="vot_continue_without_translation">Не удалось получить перевод. Нажмите «Воспроизвести», чтобы продолжить без перевода.</string>
     <string name="vot_token_section">OAuth-токен</string>
     <string name="vot_state_on">вкл</string>
     <string name="vot_state_off">выкл</string>

@@ -15,6 +15,7 @@ import com.liskovsoft.smartyoutubetv2.common.vot.VotAudioTrackHelper;
 import com.liskovsoft.smartyoutubetv2.common.vot.VotAudioTrackHelper.TrackInfo;
 import com.liskovsoft.smartyoutubetv2.common.vot.VotClient;
 import com.liskovsoft.smartyoutubetv2.common.vot.VotProgress;
+import com.liskovsoft.smartyoutubetv2.common.vot.VotDiagnostics;
 
 import java.io.IOException;
 import java.util.List;
@@ -59,6 +60,26 @@ public class VoiceTranslateController extends BasePlayerController {
     private String mPendingVideoUrl;
     private String mCurrentVideoId;
     private int mAutoTranslateRetryCount;
+    private long mGeneration;
+    private boolean mOwnsPreparationPause;
+    private boolean mPreparingAudio;
+    public boolean ownsPreparationPause() {
+        return mOwnsPreparationPause;
+    }
+
+    @Override
+    public void onPlayClicked() {
+        mOwnsPreparationPause = false;
+    }
+
+    @Override
+    public void onPauseClicked() {
+        mOwnsPreparationPause = false;
+    }
+
+    protected TranslationAudioPlayer createTranslationPlayer() {
+        return new TranslationAudioPlayer(getContext());
+    }
 
     private final Runnable mSyncRunnable = new Runnable() {
         @Override
@@ -80,14 +101,14 @@ public class VoiceTranslateController extends BasePlayerController {
     public VoiceTranslateController() {
     }
 
-    private VotData votData() {
+    protected VotData votData() {
         if (mVotData == null) {
             mVotData = VotData.instance(getContext());
         }
         return mVotData;
     }
 
-    private VotClient votClient() {
+    protected VotClient votClient() {
         if (mVotClient == null) {
             mVotClient = new VotClient(getContext());
         }
@@ -106,13 +127,8 @@ public class VoiceTranslateController extends BasePlayerController {
         mPendingVideoUrl = null;
         mCurrentVideoId = item != null ? item.videoId : null;
 
-        if (mUserArmed) {
-            mArmed = true;
-            setState(STATE_PENDING);
-        } else {
-            mArmed = false;
-            setState(STATE_OFF);
-        }
+        mArmed = false;
+        setState(STATE_OFF);
     }
 
     @Override
@@ -134,6 +150,11 @@ public class VoiceTranslateController extends BasePlayerController {
 
     @Override
     public void onPlay() {
+        // Engine restoration (for example AFR) is not explicit user Play intent.
+        if (mOwnsPreparationPause && (mState == STATE_PENDING || mPreparingAudio)) {
+            if (getPlayer() != null) getPlayer().setPlayWhenReady(false);
+            return;
+        }
         if (mState == STATE_ACTIVE && mTranslationPlayer != null) {
             mTranslationPlayer.resume();
             syncTranslationPositionIfNeeded();
@@ -174,18 +195,26 @@ public class VoiceTranslateController extends BasePlayerController {
         if (buttonState == BTN_OFF) {
             armAndStart();
         } else {
+            boolean resumeOwnedPause = mOwnsPreparationPause;
             disarm();
+            if (resumeOwnedPause && getPlayer() != null) getPlayer().setPlayWhenReady(true);
         }
     }
 
     @Override
     public void onButtonLongClicked(int buttonId, int buttonState) {
         if (buttonId == ACTION_VOICE_TRANSLATE) {
-            AppDialogUtil.showVotMixDialog(getContext(), () -> {
-                applyVolumesLive();
-                tryApplyAutoTranslate(false);
-            });
+            AppDialogUtil.showVotMixDialog(getContext(), this::onPlaybackPreferencesChanged);
         }
+    }
+
+    protected void onPlaybackPreferencesChanged() {
+        applyVolumesLive();
+        if (mOwnsPreparationPause && !votData().isPauseWhilePreparingEnabled()) {
+            mOwnsPreparationPause = false;
+            if (getPlayer() != null) getPlayer().setPlayWhenReady(true);
+        }
+        tryApplyAutoTranslate(false);
     }
 
     private void armAndStart() {
@@ -218,7 +247,7 @@ public class VoiceTranslateController extends BasePlayerController {
             return;
         }
 
-        if (mState == STATE_ACTIVE) {
+        if (mState == STATE_ACTIVE || mPreparingAudio) {
             return;
         }
 
@@ -226,6 +255,11 @@ public class VoiceTranslateController extends BasePlayerController {
             if (tryApplyYoutubeAutoDub(autoEnabled)) {
                 return;
             }
+        }
+        if (mUserArmed && !mArmed) {
+            mArmed = true;
+            startYandexTranslation();
+            return;
         }
 
         TrackInfo info = resolveAudioInfo();
@@ -307,6 +341,7 @@ public class VoiceTranslateController extends BasePlayerController {
         if (dub == null) {
             return false;
         }
+        boolean resumeOwnedPause = mOwnsPreparationPause;
         saveCurrentAudioFormatBeforeSwitch(dub);
         getPlayer().setFormat(dub);
         mArmed = false;
@@ -315,6 +350,7 @@ public class VoiceTranslateController extends BasePlayerController {
         releaseTranslationPlayer();
         restoreMainVolume();
         setState(STATE_OFF);
+        if (resumeOwnedPause) getPlayer().setPlayWhenReady(true);
         if (showToast) {
             MessageHelpers.showMessage(getContext(), R.string.vot_using_youtube_dub);
         }
@@ -349,6 +385,15 @@ public class VoiceTranslateController extends BasePlayerController {
         }
 
         cancelTranslationJob();
+        releaseTranslationPlayer();
+        restoreMainVolume();
+        final long generation = mGeneration;
+        VotDiagnostics.setError(VotDiagnostics.Error.NONE);
+        mOwnsPreparationPause = votData().isPauseWhilePreparingEnabled()
+                && getPlayer().getPlayWhenReady();
+        if (mOwnsPreparationPause) {
+            getPlayer().setPlayWhenReady(false);
+        }
         mPendingToastShown = false;
         mPendingVideoUrl = videoUrl;
         setState(STATE_PENDING);
@@ -357,8 +402,12 @@ public class VoiceTranslateController extends BasePlayerController {
         mTranslationDisposable = votClient().observeTranslation(videoUrl, durationSec)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
-                        this::onVotProgress,
-                        this::onVotError
+                        progress -> {
+                            if (generation == mGeneration) onVotProgress(progress);
+                        },
+                        error -> {
+                            if (generation == mGeneration) onVotError(error);
+                        }
                 );
     }
 
@@ -439,7 +488,6 @@ public class VoiceTranslateController extends BasePlayerController {
             case VotProgress.TYPE_READY:
                 if (progress.audioUrl != null) {
                     playTranslation(progress.audioUrl);
-                    MessageHelpers.showMessage(getContext(), R.string.vot_enabled);
                 }
                 break;
             case VotProgress.TYPE_FAILED:
@@ -450,8 +498,10 @@ public class VoiceTranslateController extends BasePlayerController {
 
     private void onVotError(Throwable e) {
         String msg = e.getMessage();
+        VotDiagnostics.setError(e instanceof IOException
+                ? VotDiagnostics.Error.NETWORK : VotDiagnostics.Error.TRANSLATION);
         if (e instanceof IOException) {
-            handleTranslationError(msg);
+            handleTranslationError(null);
         } else {
             handleTranslationError(msg != null ? msg : getContext().getString(R.string.vot_error_generic));
         }
@@ -462,21 +512,35 @@ public class VoiceTranslateController extends BasePlayerController {
             return;
         }
         releaseTranslationPlayer();
-        mTranslationPlayer = new TranslationAudioPlayer(getContext());
-        mTranslationPlayer.setOnReadyListener(() -> {
-            if (getPlayer() != null && mTranslationPlayer != null) {
-                mTranslationPlayer.seekTo(getPlayer().getPositionMs());
-            }
+        final long generation = mGeneration;
+        final TranslationAudioPlayer audio = createTranslationPlayer();
+        mTranslationPlayer = audio;
+        mPreparingAudio = true;
+        VotDiagnostics.setState(VotDiagnostics.State.PREPARING);
+        audio.setOnErrorListener(() -> {
+            if (generation != mGeneration || mTranslationPlayer != audio) return;
+            VotDiagnostics.setError(VotDiagnostics.Error.AUDIO);
+            handleTranslationError(null);
+        });
+        audio.setOnReadyListener(() -> {
+            if (generation != mGeneration || mTranslationPlayer != audio || getPlayer() == null) return;
+            mPreparingAudio = false;
+            audio.seekTo(getPlayer().getPositionMs());
+            audio.setPlaybackSpeed(getPlayer().getSpeed());
+            duckMainAudio();
+            setState(STATE_ACTIVE);
+            MessageHelpers.showMessage(getContext(), R.string.vot_enabled);
+            boolean resumeMain = mOwnsPreparationPause;
+            mOwnsPreparationPause = false;
+            if (resumeMain) getPlayer().setPlayWhenReady(true);
+            if (getPlayer().getPlayWhenReady()) audio.resume();
+            else audio.pause();
+            Utils.removeCallbacks(mSyncRunnable);
+            Utils.postDelayed(mSyncRunnable, SYNC_INTERVAL_MS);
         });
         float speed = getPlayer().getSpeed();
-        mTranslationPlayer.play(
-                audioUrl,
-                getPlayer().getPositionMs(),
-                votData().getTranslationVolumeMultiplier(),
-                speed > 0 ? speed : 1f
-        );
-        duckMainAudio();
-        setState(STATE_ACTIVE);
+        audio.play(audioUrl, getPlayer().getPositionMs(),
+                votData().getTranslationVolumeMultiplier(), speed > 0 ? speed : 1f);
         Utils.removeCallbacks(mSyncRunnable);
         Utils.postDelayed(mSyncRunnable, SYNC_INTERVAL_MS);
     }
@@ -541,6 +605,9 @@ public class VoiceTranslateController extends BasePlayerController {
     }
 
     private void cancelTranslationJob() {
+        ++mGeneration;
+        mOwnsPreparationPause = false;
+        mPreparingAudio = false;
         if (mTranslationDisposable != null && !mTranslationDisposable.isDisposed()) {
             mTranslationDisposable.dispose();
         }
@@ -568,15 +635,18 @@ public class VoiceTranslateController extends BasePlayerController {
     }
 
     private void disarmQuiet() {
+        boolean resumeOwnedPause = mOwnsPreparationPause;
         mArmed = false;
         cancelTranslationJob();
         releaseTranslationPlayer();
         restoreMainVolume();
         setState(STATE_OFF);
         mPendingVideoUrl = null;
+        if (resumeOwnedPause && getPlayer() != null) getPlayer().setPlayWhenReady(true);
     }
 
     private void disarmWithMessage(int msgResId) {
+        boolean resumeOwnedPause = mOwnsPreparationPause;
         mUserArmed = false;
         mArmed = false;
         Utils.removeCallbacks(mAutoTranslateRetryRunnable);
@@ -586,24 +656,31 @@ public class VoiceTranslateController extends BasePlayerController {
         restoreSavedAudioFormat();
         setState(STATE_OFF);
         mPendingVideoUrl = null;
+        if (resumeOwnedPause && getPlayer() != null) getPlayer().setPlayWhenReady(true);
         MessageHelpers.showMessage(getContext(), msgResId);
     }
 
     private void handleTranslationError(String message) {
-        Log.e(TAG, "Translation error: %s", message);
-        if (message != null && message.contains("auth required")) {
+        boolean wasWaitingPaused = mOwnsPreparationPause;
+        boolean auth = message != null && message.contains("auth required");
+        if (!auth && message != null) {
+            VotDiagnostics.setError(VotDiagnostics.Error.TRANSLATION);
+        }
+        if (auth) {
+            VotDiagnostics.setError(VotDiagnostics.Error.AUTH);
             AppDialogUtil.showVotAuthRequiredDialog(getContext());
         } else {
             MessageHelpers.showMessage(getContext(), R.string.vot_error_generic);
         }
-        if (mArmed) {
-            setState(STATE_PENDING);
-        } else {
-            setState(STATE_OFF);
+        disarm();
+        if (wasWaitingPaused) {
+            MessageHelpers.showMessage(getContext(), R.string.vot_continue_without_translation);
         }
     }
 
     private void setState(int state) {
+        VotDiagnostics.setState(state == STATE_ACTIVE ? VotDiagnostics.State.ACTIVE
+                : state == STATE_PENDING ? VotDiagnostics.State.PENDING : VotDiagnostics.State.OFF);
         mState = state;
         int btnIndex;
         switch (state) {

@@ -132,7 +132,8 @@ public class VideoStateController extends BasePlayerController {
 
         // Save previous state
         if (getPlayer().containsMedia()) {
-            setPlayEnabled(getPlayer().getPlayWhenReady());
+            VoiceTranslateController vot = getController(VoiceTranslateController.class);
+            setPlayEnabled(getPlayer().getPlayWhenReady() || (vot != null && vot.ownsPreparationPause()));
             saveState();
         }
     }

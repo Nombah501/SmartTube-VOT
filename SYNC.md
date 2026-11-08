@@ -102,6 +102,41 @@ would force-push and re-conflict the same files every time).
   discovery and pairing on the local network (ports 1900/8090); use only on
   a trusted LAN. Actual discovery/pairing was not exercised.
 
+## Workflow and VOT hardening (unreleased)
+
+- `common` now uses Robolectric 4.7.3 with JDK 17, without editing upstream
+  submodules. The full common suite runs; the earlier JDK incompatibility above
+  describes historical runs before this change.
+- Regression coverage exercises actual VOT controller requests, cancellation,
+  audio readiness, manual intent, stale generations, volume restoration and
+  engine-release playback snapshots; preference fixtures preserve slots 61/62.
+- Preparation pause is optional and defaults off. User Play/Pause overrides it;
+  translation audio is prepared silently. A failure leaves an owned pause for
+  manual Play; explicit VOT cancellation resumes only a VOT-owned pause.
+- Local diagnostics contain only app/upstream/device metadata and closed
+  state/error categories. Playback reset preserves OAuth, relay and unrelated
+  preferences. No report is uploaded.
+- PR/master CI runs common tests, verifier tests and debug assembly without
+  release secrets, preserving APK and test reports.
+- Release artifact verification is independent of the announced manifest:
+  source tag/version, stable package, exact four ABI sets and pinned certificate
+  are checked before upload. Uploaded bytes are downloaded and compared before
+  success; SHA256SUMS and provenance accompany future releases.
+- `Verify published update` checks all URLs of the highest announced version
+  on manifest changes, completed release workflows or manual runs. Downloads
+  allow only GitHub HTTPS hosts and are bounded to 256 MiB each.
+- No release/tag or `update.json` version change is part of these changes.
+- Local verification: JDK 17 `:common:testStstableDebugUnitTest
+  :smarttubetv:assembleStstableDebug --no-daemon` succeeded; final common report
+  contains 39 tests, zero failures/errors. The release verifier has 14 passing
+  tests and was exercised against actual signed v32.74 APKs and every public
+  manifest URL. Workflow YAML and all run-block shell syntax were checked.
+- Isolated Android 34 UI smoke: pause defaults off and persists after restart;
+  missing-token lively voice explains auth; reset returns mix 15/100 and all
+  playback toggles off while preserving synthetic OAuth/custom relay.
+  Diagnostics displayed metadata/status and excluded seeded secrets/relay.
+  These are debug/emulator checks, not physical-TV audio validation.
+
 ## Merge procedure
 
 ```bash

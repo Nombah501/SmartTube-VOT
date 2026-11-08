@@ -329,6 +329,16 @@
     <string name="vot_error_no_video">No video to translate</string>
     <string name="vot_error_generic">Voice translation failed</string>
     <string name="vot_settings_category">Voice translation (Yandex)</string>
+    <string name="vot_pause_preparing">Pause while preparing translation</string>
+    <string name="vot_pause_preparing_desc">Pause playback until translation is ready. Off by default.</string>
+    <string name="vot_lively_unavailable">Lively voice unavailable: sign in to Yandex or set an OAuth token</string>
+    <string name="vot_mix_range">0–100%%; default %1$d%%</string>
+    <string name="vot_reset_playback">Reset translation playback settings</string>
+    <string name="vot_reset_confirm">Reset voice, automatic translation, dub preference, pause and mix (15% / 100%)? Sign-in and relay are kept.</string>
+    <string name="vot_diagnostics">Translation diagnostics</string>
+    <string name="vot_copy_diagnostics">Copy diagnostics</string>
+    <string name="vot_diagnostics_copied">Diagnostics copied</string>
+    <string name="vot_continue_without_translation">Translation failed. Press Play to continue without translation.</string>
     <string name="vot_token_section">OAuth token</string>
     <string name="vot_state_on">on</string>
     <string name="vot_state_off">off</string>

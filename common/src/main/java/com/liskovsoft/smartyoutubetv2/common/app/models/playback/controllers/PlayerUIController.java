@@ -739,6 +739,8 @@ public class PlayerUIController extends BasePlayerController {
                     // NOP
                     break;
                 case PlayerData.OK_ONLY_PAUSE:
+                    if (getPlayer().getPlayWhenReady()) getMainController().onPauseClicked();
+                    else getMainController().onPlayClicked();
                     getPlayer().setPlayWhenReady(!getPlayer().getPlayWhenReady());
                     return true; // don't show ui
                 case PlayerData.OK_TOGGLE_SPEED:
@@ -778,8 +780,13 @@ public class PlayerUIController extends BasePlayerController {
     }
 
     private boolean handlePlayPauseKey(int keyCode) {
-        if (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE && getPlayer() != null) {
-            getPlayer().setPlayWhenReady(!getPlayer().getPlayWhenReady());
+        if ((keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE || keyCode == KeyEvent.KEYCODE_MEDIA_PLAY
+                || keyCode == KeyEvent.KEYCODE_MEDIA_PAUSE) && getPlayer() != null) {
+            boolean play = keyCode == KeyEvent.KEYCODE_MEDIA_PLAY
+                    || (keyCode == KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE && !getPlayer().getPlayWhenReady());
+            if (play) getMainController().onPlayClicked();
+            else getMainController().onPauseClicked();
+            getPlayer().setPlayWhenReady(play);
             enableUiAutoHideTimeout(); // TODO: move out somehow
             return true;
         }

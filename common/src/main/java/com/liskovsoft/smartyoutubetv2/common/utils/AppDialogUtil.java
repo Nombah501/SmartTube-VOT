@@ -497,7 +497,8 @@ public class AppDialogUtil {
 
     public static OptionCategory createVotOriginalVolumeCategory(Context context, Runnable onSetCallback) {
         VotData votData = VotData.instance(context);
-        String title = context.getString(R.string.vot_original_volume);
+        String title = context.getString(R.string.vot_original_volume) + " — "
+                + context.getString(R.string.vot_mix_range, 15);
         List<OptionItem> options = new ArrayList<>();
 
         for (int percent : Helpers.range(0, 100, 5)) {
@@ -518,7 +519,8 @@ public class AppDialogUtil {
 
     public static OptionCategory createVotTranslationVolumeCategory(Context context, Runnable onSetCallback) {
         VotData votData = VotData.instance(context);
-        String title = context.getString(R.string.vot_translation_volume);
+        String title = context.getString(R.string.vot_translation_volume) + " — "
+                + context.getString(R.string.vot_mix_range, 100);
         List<OptionItem> options = new ArrayList<>();
 
         for (int percent : Helpers.range(0, 100, 5)) {
@@ -554,13 +556,63 @@ public class AppDialogUtil {
                     callback.run();
                 },
                 votData.isPreferYoutubeAutoDub()));
+        toggles.add(UiOptionItem.from(
+                context.getString(R.string.vot_pause_preparing),
+                context.getString(R.string.vot_pause_preparing_desc),
+                optionItem -> {
+                    votData.setPauseWhilePreparingEnabled(optionItem.isSelected());
+                    callback.run();
+                }, votData.isPauseWhilePreparingEnabled()));
+        if (votData.hasOAuthToken()) {
+            toggles.add(UiOptionItem.from(context.getString(R.string.vot_lively_voice),
+                    optionItem -> {
+                        if (optionItem.isSelected() && !votData.hasOAuthToken()) {
+                            votData.setLivelyVoiceEnabled(false);
+                            showVotAuthRequiredDialog(context);
+                            return;
+                        }
+                        votData.setLivelyVoiceEnabled(optionItem.isSelected());
+                        callback.run();
+                    }, votData.isLivelyVoiceEnabled()));
+        } else {
+            presenter.appendSingleButton(UiOptionItem.from(context.getString(R.string.vot_lively_unavailable),
+                    optionItem -> showVotAuthRequiredDialog(context)));
+        }
         OptionCategory original = createVotOriginalVolumeCategory(context, callback);
         OptionCategory translation = createVotTranslationVolumeCategory(context, callback);
         String title = context.getString(R.string.vot_mix_menu_title);
         presenter.appendCheckedCategory(context.getString(R.string.vot_mix_options), toggles);
         presenter.appendRadioCategory(original.title, original.options);
         presenter.appendRadioCategory(translation.title, translation.options);
+        presenter.appendSingleButton(UiOptionItem.from(context.getString(R.string.vot_reset_playback),
+                optionItem -> showVotResetDialog(context, callback)));
+        presenter.appendSingleButton(UiOptionItem.from(context.getString(R.string.vot_diagnostics),
+                optionItem -> showVotDiagnosticsDialog(context)));
         presenter.showDialog(title);
+    }
+
+    public static void showVotResetDialog(Context context, Runnable onReset) {
+        showConfirmationDialog(context, context.getString(R.string.vot_reset_confirm), () -> {
+            VotData.instance(context).resetPlaybackPreferences();
+            onReset.run();
+        });
+    }
+
+    public static void showVotDiagnosticsDialog(Context context) {
+        String report = com.liskovsoft.smartyoutubetv2.common.vot.VotDiagnostics.createReport(context);
+        AppDialogPresenter presenter = AppDialogPresenter.instance(context);
+        presenter.appendStringsCategory(context.getString(R.string.vot_diagnostics),
+                java.util.Collections.singletonList(UiOptionItem.from(report, optionItem -> {})));
+        presenter.appendSingleButton(UiOptionItem.from(context.getString(R.string.vot_copy_diagnostics), optionItem -> {
+            android.content.ClipboardManager clipboard = (android.content.ClipboardManager)
+                    context.getSystemService(Context.CLIPBOARD_SERVICE);
+            if (clipboard != null) {
+                clipboard.setPrimaryClip(android.content.ClipData.newPlainText(
+                        context.getString(R.string.vot_diagnostics), report));
+                MessageHelpers.showMessage(context, R.string.vot_diagnostics_copied);
+            }
+        }));
+        presenter.showDialog(context.getString(R.string.vot_diagnostics));
     }
 
     public static void showVotAuthRequiredDialog(Context context) {
