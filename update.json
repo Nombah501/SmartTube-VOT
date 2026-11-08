@@ -5,6 +5,19 @@
         "downloadUrlList_x86": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_x86.apk"],
         "downloadUrlList": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_universal.apk"]
     },
+    "32.73": {
+        "versionCode": 2463,
+        "changelog": [
+            "Synced with upstream 32.72: SABR live playback, opt-in DIAL casting and queue improvements",
+            "Fixed QR sign-in after relay domain expiration; switched to workers.dev",
+            "Preserved VOT button settings; network settings moved to General/Network"
+        ],
+        "changelog_ru": [
+            "Синхронизация с upstream 32.72: SABR live, опциональный DIAL и улучшения очереди",
+            "Исправлен QR-вход после истечения домена relay: переход на workers.dev",
+            "Настройки кнопки VOT сохранены; сетевые настройки перенесены в Общее/Сеть"
+        ]
+    },
     "32.69": {
         "versionCode": 2459,
         "changelog": [

@@ -55,10 +55,13 @@ would force-push and re-conflict the same files every time).
 - VOT activation/deactivation UI and seek were exercised during public-video
   playback; the enabled toast and button state were observed, but successful
   translated audio/ETA were not established. Do not treat this as end-to-end VOT.
-- The QR dialog opened, but relay TLS failed with `TLSV1_ALERT_INTERNAL_ERROR`
-  (10000438). Host `curl -I --max-time 20 https://v.n501.site/` also failed with
-  curl error 35 / TLS alert internal error. No account was linked; relay/auth
-  code is unchanged by this sync.
+- The expired custom-domain relay caused `TLSV1_ALERT_INTERNAL_ERROR`.
+  Follow-up commit `01c792123` switches QR auth to
+  `https://smarttube-vot-auth.youloveprimebeat.workers.dev` and redirects an
+  exact saved legacy URL to this default, preserving other custom endpoints.
+  Live `/api/start`, phone page and pending poll succeeded. The rebuilt app
+  displayed a QR with the new host for both fresh settings and a saved legacy
+  URL on Android 34. No account was linked; OAuth completion remains unverified.
 - Existing JVM tests (`:common:testStstableDebugUnitTest`, SuggestionsControllerTest
   and ScreensaverManagerTest) could not execute with installed JDK 17:
   Robolectric 4.6.1 fails on ASM class-file major 61. A temporary ASM 9.2
@@ -67,8 +70,14 @@ would force-push and re-conflict the same files every time).
   changes are included. These tests are not reported as passing.
 - No physical TV is connected. Emulator checks do not prove hardware decoder,
   real audio mix, live SABR recovery, or authenticated QR sign-in behavior.
-- No tag or release is created by this sync. `update.json` remains unchanged
-  at the published 32.69 / 2459 release; debug 32.73 APKs are not an update offer.
+- Follow-up release [v32.73](https://github.com/Nombah501/SmartTube-VOT/releases/tag/v32.73)
+  is published as Latest from `01c79212328598326001193d507e00b31060219d`.
+  Release workflow `42495515736` succeeded and uploaded four APKs.
+  All four were checked with aapt/apksigner: `org.smarttube.stable` 32.73 / 2463,
+  certificate SHA-256 `6de965656c0c049c677981e6bfe6dda074ed0ac158c361661ed5c25d744ff7b8`
+  matches the downloaded v32.69 release. Public manifest URLs were downloaded
+  and byte-matched against these verified APKs before advertising 32.73 in
+  `update.json`.
 - Review limitation: upstream gamepad `rewind`/`fastForward` bypasses the
   timeline offset for SABR live streams with a non-zero DVR window start.
   This is unmodified upstream behavior behind the default-off SABR-live
