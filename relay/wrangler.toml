@@ -13,10 +13,6 @@ workers_dev = true
 compatibility_date = "2026-08-01"
 preview_urls = true
 
-routes = [
-  { pattern = "v.n501.site", custom_domain = true }
-]
-
 [vars]
 OAUTH_CLIENT_ID = "43ad0b19d0d549b6bd1c8b362b05e01b"
 
