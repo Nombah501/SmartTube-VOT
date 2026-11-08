@@ -94,7 +94,14 @@ public class VotData extends SharedPreferencesBase {
     /** Base URL of the sign-in relay worker (see relay/worker.js). */
     public String getRelayUrl() {
         String url = getString(RELAY_URL, VotConfig.RELAY_BASE_URL);
-        return "https://v.n501.site".equals(url) ? VotConfig.RELAY_BASE_URL : url;
+        String base = url == null ? "" : url.trim();
+        int end = base.length();
+        while (end > 0 && base.charAt(end - 1) == '/') {
+            end--;
+        }
+        base = base.substring(0, end);
+        return "v.n501.site".equals(base) || "https://v.n501.site".equals(base)
+                || "http://v.n501.site".equals(base) ? VotConfig.RELAY_BASE_URL : url;
     }
 
     public void setRelayUrl(String url) {
