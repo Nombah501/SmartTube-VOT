@@ -7,8 +7,8 @@ would force-push and re-conflict the same files every time).
 
 - Upstream master: `2bcad2c130f5789af22094a59c029d14461825f0`
   (upstream remains 32.72 / 2462; two commits after `a945135eee`).
-- Source fork: 32.76 / 2466. Published manifest remains 32.75 / 2465;
-  this synchronization creates no release or tag.
+- Source and published fork: 32.76 / 2466. The source-only synchronization
+  created no tag/release; v32.76 was published later on explicit request.
 - MediaServiceCore: `4be5193d912c5424c31a1967926219315c48e144`.
   Both SharedModules remain `5b6b5d1d3ba670e3f89edef1d1394a7562251f2c`.
 - Changes: one SABR repair attempt instead of three; extra Shorts detection
@@ -29,6 +29,23 @@ would force-push and re-conflict the same files every time).
 - Unverified in this sync: forced SABR error/retry/fallback, translated audio,
   Shorts-filter on/off comparison and physical-TV behavior. The actual Fire TV
   was not updated; no OAuth or account actions were performed.
+
+### Release 32.76 verification
+
+- Annotated `v32.76` points to merge `d276ba098a3c8b6fc3bfbd09f4aa431e34015b83`.
+  Release workflow `42607778228` succeeded in 4m 38s, including downloaded-byte
+  verification of the uploaded assets.
+- All four downloaded production APKs passed package/version 32.76 / 2466,
+  exact ABI, pinned certificate and checksum validation. Their signing
+  certificate matches v32.75; provenance verification passed for every APK.
+- Physical signed-upgrade smoke: Fire TV AFTMM / Android 7.1.2 API 25,
+  `adb install -r` succeeded; dumpsys reports 32.76 / 2466. Application Home
+  populated and public video rendered at 1080/25/VP9 with a 0:34 / 3:33 timeline.
+  No uninstall, data reset, settings edits or authentication actions occurred.
+  Forced SABR fallback and translated audio were not tested in this smoke.
+- v32.76 is published as Latest. All four public manifest URLs were downloaded
+  and passed package/version/ABI/signature checks; their SHA256 values match
+  the accepted signed artifacts before announcing 32.76 in `update.json`.
 
 ## Previous sync target (2026-11-08)
 

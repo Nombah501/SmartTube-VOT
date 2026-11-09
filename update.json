@@ -5,6 +5,19 @@
         "downloadUrlList_x86": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_x86.apk"],
         "downloadUrlList": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_universal.apk"]
     },
+    "32.76": {
+        "versionCode": 2466,
+        "changelog": [
+            "Synced latest upstream SABR recovery and Shorts parsing fixes",
+            "One SABR repair attempt before existing client/engine fallback",
+            "Improved Shorts detection using reel overlay style"
+        ],
+        "changelog_ru": [
+            "Синхронизация свежих исправлений SABR и распознавания Shorts из upstream",
+            "Одна попытка восстановления SABR перед переходом на другой клиент/движок",
+            "Улучшено распознавание Shorts по reel overlay style"
+        ]
+    },
     "32.75": {
         "versionCode": 2465,
         "changelog": [
