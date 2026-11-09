@@ -3,7 +3,34 @@
 This fork tracks upstream master. Strategy: **merge, never rebase** (rebase
 would force-push and re-conflict the same files every time).
 
-## Current sync target (2026-11-08)
+## Current sync target (2026-11-09)
+
+- Upstream master: `2bcad2c130f5789af22094a59c029d14461825f0`
+  (upstream remains 32.72 / 2462; two commits after `a945135eee`).
+- Source fork: 32.76 / 2466. Published manifest remains 32.75 / 2465;
+  this synchronization creates no release or tag.
+- MediaServiceCore: `4be5193d912c5424c31a1967926219315c48e144`.
+  Both SharedModules remain `5b6b5d1d3ba670e3f89edef1d1394a7562251f2c`.
+- Changes: one SABR repair attempt instead of three; extra Shorts detection
+  through reel overlay style and additive parser models. Recovery still uses
+  the existing reload/client-switch paths, including VOT lifecycle callbacks.
+- The only merge conflict was README; the fork README was retained. Upstream
+  removed its email contact, which is not present in the fork documentation.
+- VOT controller, explicit play/pause hooks, preference slots 61/62, relay and
+  published manifest are unchanged.
+- Verification: JDK 17 `:common:testStstableDebugUnitTest
+  :smarttubetv:assembleStstableDebug --no-daemon` succeeded in 2m 52s.
+  Common test reports: 39 tests, zero failures/errors/skips. Release verifier
+  regression suite: 14 tests passed.
+- Isolated Android 34 runtime: Home tiles loaded, public English video rendered
+  at 4K/25/VP9 with a 0:13 / 3:33 timeline and STATE_READY log events.
+  VOT settings stayed reachable/default-off; diagnostics showed 32.76 / 2466
+  and the exact new upstream SHA. Independent merged-source review: APPROVED.
+- Unverified in this sync: forced SABR error/retry/fallback, translated audio,
+  Shorts-filter on/off comparison and physical-TV behavior. The actual Fire TV
+  was not updated; no OAuth or account actions were performed.
+
+## Previous sync target (2026-11-08)
 
 - Upstream master: `a945135eee6387cd6549b87604ad673944c06b5d`
   (upstream 32.72, versionCode 2462; 59 incoming commits).
