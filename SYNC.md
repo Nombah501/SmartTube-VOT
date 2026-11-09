@@ -125,7 +125,8 @@ would force-push and re-conflict the same files every time).
 - `Verify published update` checks all URLs of the highest announced version
   on manifest changes, completed release workflows or manual runs. Downloads
   allow only GitHub HTTPS hosts and are bounded to 256 MiB each.
-- No release/tag or `update.json` version change is part of these changes.
+- Implementation commit `41c0c418c` did not publish a release or advance the
+  manifest. A subsequent signed v32.75 candidate is recorded below.
 - Local verification: JDK 17 `:common:testStstableDebugUnitTest
   :smarttubetv:assembleStstableDebug --no-daemon` succeeded; final common report
   contains 39 tests, zero failures/errors. The release verifier has 14 passing
@@ -136,6 +137,23 @@ would force-push and re-conflict the same files every time).
   playback toggles off while preserving synthetic OAuth/custom relay.
   Diagnostics displayed metadata/status and excluded seeded secrets/relay.
   These are debug/emulator checks, not physical-TV audio validation.
+
+### Signed 32.75 candidate (not published)
+
+- Source/tag: `79ce673a43f9a8cedfa09ea2301a8546412b066e`, 32.75 / 2465.
+  CI `42600770287` succeeded. Release workflow `42600778459` succeeded,
+  including artifact validation, provenance and uploaded-byte verification.
+- All four downloaded APKs passed the verifier and checksum comparison;
+  `gh attestation verify` against the repository and downloaded bundle passed
+  for each APK.
+- The signed ARMv7 candidate was installed with `adb install -r` on Fire TV
+  AFTMM / Android 7.1.2 API 25. Launch, settings and English playback worked.
+  A focused VOT activation was attempted, but audio READY and owned-pause
+  resume/cancel behavior were not conclusively observed.
+- Temporary auto-translation and pause preferences were restored; all other
+  current preference values were preserved. No account login was performed.
+- v32.75 remains a draft. `update.json` and Latest remain 32.74 / 2464 until
+  actual translated audio and pause/resume behavior are confirmed on the device.
 
 ## Merge procedure
 
