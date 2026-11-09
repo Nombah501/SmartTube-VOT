@@ -5,6 +5,19 @@
         "downloadUrlList_x86": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_x86.apk"],
         "downloadUrlList": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_universal.apk"]
     },
+    "32.75": {
+        "versionCode": 2465,
+        "changelog": [
+            "Optional pause while preparing translation, with manual Play/Pause priority",
+            "Safe VOT diagnostics and playback settings reset without removing OAuth or relay",
+            "VOT lifecycle regression tests and automated signed APK verification"
+        ],
+        "changelog_ru": [
+            "Опциональная пауза подготовки перевода с приоритетом ручных Play/Pause",
+            "Безопасная диагностика VOT и сброс параметров без удаления OAuth и relay",
+            "Регрессионные тесты VOT и автоматическая проверка подписанных APK"
+        ]
+    },
     "32.74": {
         "versionCode": 2464,
         "changelog": [

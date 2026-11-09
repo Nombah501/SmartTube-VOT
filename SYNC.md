@@ -102,7 +102,7 @@ would force-push and re-conflict the same files every time).
   discovery and pairing on the local network (ports 1900/8090); use only on
   a trusted LAN. Actual discovery/pairing was not exercised.
 
-## Workflow and VOT hardening (unreleased)
+## Workflow and VOT hardening (released in 32.75)
 
 - `common` now uses Robolectric 4.7.3 with JDK 17, without editing upstream
   submodules. The full common suite runs; the earlier JDK incompatibility above
@@ -138,7 +138,7 @@ would force-push and re-conflict the same files every time).
   Diagnostics displayed metadata/status and excluded seeded secrets/relay.
   These are debug/emulator checks, not physical-TV audio validation.
 
-### Signed 32.75 candidate (not published)
+### Signed 32.75 release
 
 - Source/tag: `79ce673a43f9a8cedfa09ea2301a8546412b066e`, 32.75 / 2465.
   CI `42600770287` succeeded. Release workflow `42600778459` succeeded,
@@ -152,8 +152,11 @@ would force-push and re-conflict the same files every time).
   resume/cancel behavior were not conclusively observed.
 - Temporary auto-translation and pause preferences were restored; all other
   current preference values were preserved. No account login was performed.
-- v32.75 remains a draft. `update.json` and Latest remain 32.74 / 2464 until
-  actual translated audio and pause/resume behavior are confirmed on the device.
+- The user confirmed acceptance on the installed Fire TV candidate ("всё ок").
+  This is user-reported device acceptance; the earlier automated observation
+  limits above remain documented, not retrospectively treated as passing tests.
+- v32.75 is published as Latest; manifest announcement follows successful
+  download/signature/version/ABI verification of all four public APK URLs.
 
 ## Merge procedure
 
