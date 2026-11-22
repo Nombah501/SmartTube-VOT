@@ -7,7 +7,7 @@ would force-push and re-conflict the same files every time).
 
 - Upstream master: `a0c319a88cc7ac65749dd353c404e4aa3fddb9bc`
   (32.82 / 2472; 53 incoming commits). Fork source: 32.83 / 2473.
-  `update.json` still announces the published 32.76 / 2466 APKs.
+  `update.json` announces the published 32.83 / 2473 APKs.
 - MediaServiceCore: `bad6cb5791f996e6026f1c4a76313adc94c001c7`;
   both SharedModules: `e12618a07ada786d5b731b2d668efe1383992547`.
 - SABR PoToken recovery still selects the next client, but reloads the same
@@ -22,6 +22,20 @@ would force-push and re-conflict the same files every time).
 - Isolated Android 34: installed the arm64 debug APK, reached PlaybackActivity
   and observed the VOT button. Public-video readiness, forced live PoToken
   recovery, translated audio, Shorts filtering and physical TV were not verified.
+
+### Release 32.83 verification
+
+- Annotated `v32.83` points to `ab9fcd3dafce6a605f4594bd8f15c35cdf1a2f69`.
+  Release workflow `45037960889` succeeded on retry after Maven Central
+  returned HTTP 429. All four APKs matched the 32.76 signer and passed
+  checksum and provenance verification.
+- Fire TV AFTMM (API 25): signed ARMv7 upgrade from 32.76 without clearing
+  data; recommendations loaded and playback from the feed rendered moving
+  video. Direct-link playback and audible VOT were not confirmed by the
+  automated smoke. The user independently confirmed acceptance.
+- Published the accepted draft as Latest without rebuilding. All four
+  anonymous manifest downloads matched the accepted APK hashes and passed
+  package, version, ABI and signature checks before the manifest update.
 
 ## Previous sync target (2026-11-09)
 

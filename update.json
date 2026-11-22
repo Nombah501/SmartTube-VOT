@@ -5,6 +5,17 @@
         "downloadUrlList_x86": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_x86.apk"],
         "downloadUrlList": ["https://github.com/Nombah501/SmartTube-VOT/releases/latest/download/SmartTube_stable_universal.apk"]
     },
+    "32.83": {
+        "versionCode": 2473,
+        "changelog": [
+            "Merged upstream SmartTube 32.82.",
+            "SABR PoToken recovery keeps voice translation enabled when reloading the current video."
+        ],
+        "changelog_ru": [
+            "Синхронизация с оригинальным SmartTube 32.82.",
+            "При восстановлении после ошибки SABR PoToken ручное включение закадрового перевода сохраняется."
+        ]
+    },
     "32.76": {
         "versionCode": 2466,
         "changelog": [
