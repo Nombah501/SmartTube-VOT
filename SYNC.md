@@ -3,7 +3,27 @@
 This fork tracks upstream master. Strategy: **merge, never rebase** (rebase
 would force-push and re-conflict the same files every time).
 
-## Current sync target (2026-11-09)
+## Current sync target (2026-11-22)
+
+- Upstream master: `a0c319a88cc7ac65749dd353c404e4aa3fddb9bc`
+  (32.82 / 2472; 53 incoming commits). Fork source: 32.83 / 2473.
+  `update.json` still announces the published 32.76 / 2466 APKs.
+- MediaServiceCore: `bad6cb5791f996e6026f1c4a76313adc94c001c7`;
+  both SharedModules: `e12618a07ada786d5b731b2d668efe1383992547`.
+- SABR PoToken recovery still selects the next client, but reloads the same
+  video without releasing the engine. VOT cancels the old translation,
+  releases its audio and restores original volume while preserving manual
+  enablement for that video. An actual engine release still disarms VOT.
+- Retained the fork README and preference slots 61 (VOT migration) and
+  62 (live edge); upstream quick chapter skip uses slot 63.
+- The PoToken regression test failed before the fix (one translation request
+  instead of two). JDK 17 common tests (40, zero failures/errors/skips) and
+  debug APK assembly succeeded after the fix; all 14 release verifier tests passed.
+- Isolated Android 34: installed the arm64 debug APK, reached PlaybackActivity
+  and observed the VOT button. Public-video readiness, forced live PoToken
+  recovery, translated audio, Shorts filtering and physical TV were not verified.
+
+## Previous sync target (2026-11-09)
 
 - Upstream master: `2bcad2c130f5789af22094a59c029d14461825f0`
   (upstream remains 32.72 / 2462; two commits after `a945135eee`).

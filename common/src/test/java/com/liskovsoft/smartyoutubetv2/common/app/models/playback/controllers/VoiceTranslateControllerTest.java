@@ -1,6 +1,8 @@
 package com.liskovsoft.smartyoutubetv2.common.app.models.playback.controllers;
 
 import android.content.Context;
+import com.google.android.exoplayer2.source.sabr.parser.exceptions.SabrPoTokenError;
+import com.liskovsoft.smartyoutubetv2.common.app.models.playback.listener.PlayerEventListener;
 import com.liskovsoft.smartyoutubetv2.common.R;
 import com.liskovsoft.smartyoutubetv2.common.app.models.data.Video;
 import com.liskovsoft.smartyoutubetv2.common.app.views.PlaybackView;
@@ -265,6 +267,42 @@ public class VoiceTranslateControllerTest {
         assertReloadRejectsOldCallbacks("same-id");
     }
 
+    @Test public void sabrPoTokenRecoveryRestoresVolumeAndKeepsManualTranslation() throws Exception {
+        Harness c = new Harness();
+        c.data.setAutoTranslateEnabled(false);
+        c.start(true, false);
+        c.urlReady();
+        FakeAudio old = c.audio;
+        old.ready.onReady();
+        assertTrue(c.volume < 1f);
+        c.engineError = new SabrPoTokenError("PoToken error");
+        VideoLoaderController loader = new VideoLoaderController() {
+            @Override public void reloadVideo() {
+                c.onNewVideo(c.video);
+                assertTrue(old.released);
+                assertEquals(1f, c.volume, 0f);
+                c.onVideoLoaded(c.video);
+            }
+
+            @Override public void restartEngine() {
+                c.onEngineReleased();
+                reloadVideo();
+            }
+        };
+        ErrorFixerController fixer = new ErrorFixerController() {
+            @Override public PlaybackView getPlayer() { return c.getPlayer(); }
+            @Override public Video getVideo() { return c.video; }
+            @Override public Context getContext() { return context(); }
+            @Override protected <T extends PlayerEventListener> T getController(Class<T> type) {
+                return type.cast(loader);
+            }
+        };
+        fixer.onInit();
+        fixer.onLongBuffering();
+        assertEquals(2, c.client.jobs.size());
+        c.onEngineReleased();
+    }
+
     @Test public void differentVideoRejectsOldProgressErrorAndAudioCallbacks() throws Exception {
         assertReloadRejectsOldCallbacks("second-video");
     }
@@ -339,6 +377,7 @@ public class VoiceTranslateControllerTest {
         float volume = 1f;
         int playRequests, pauseRequests;
         FakeAudio audio;
+        Throwable engineError;
         com.liskovsoft.smartyoutubetv2.common.exoplayer.selector.FormatItem audioFormat;
         Video video = new Video();
         final VotData data;
@@ -347,6 +386,7 @@ public class VoiceTranslateControllerTest {
                 PlaybackView.class.getClassLoader(), new Class<?>[]{PlaybackView.class}, (p, m, a) -> {
                     switch (m.getName()) {
                         case "getAudioFormat": return audioFormat;
+                        case "getUnthrownError": return engineError;
                         case "containsMedia": return true;
                         case "isEmbed": return false;
                         case "isOverlayShown": case "isSuggestionsShown": return false;

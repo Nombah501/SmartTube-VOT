@@ -67,14 +67,16 @@ public class PlayerTweaksDataTest {
         load(LEGACY);
         assertTrue(data.isPlayerButtonEnabled(PlayerTweaksData.PLAYER_BUTTON_VOICE_TRANSLATE));
         assertFalse(data.isLiveEdgeEnabled());
+        assertFalse(data.isQuickSkipChaptersEnabled());
         assertLegacyGetters();
 
         data.persistNow();
         shadowOf(Looper.getMainLooper()).idle();
         String[] saved = storedSlots();
-        assertEquals(63, saved.length);
+        assertEquals(64, saved.length);
         assertEquals("true", saved[61]);
         assertEquals("false", saved[62]);
+        assertEquals("false", saved[63]);
         assertLegacySlots(saved, true);
 
         recreate();
@@ -84,8 +86,15 @@ public class PlayerTweaksDataTest {
         assertLegacySlots(storedSlots(), false);
         recreate();
         assertFalse(data.isPlayerButtonEnabled(PlayerTweaksData.PLAYER_BUTTON_VOICE_TRANSLATE));
-        assertEquals("true", storedSlots()[61]);
         assertLegacyGetters();
+        data.setQuickSkipChaptersEnabled(true);
+        drainPersistence();
+        recreate();
+        assertTrue(data.isQuickSkipChaptersEnabled());
+        assertFalse(data.isPlayerButtonEnabled(PlayerTweaksData.PLAYER_BUTTON_VOICE_TRANSLATE));
+        assertEquals("false", storedSlots()[62]);
+        assertEquals("true", storedSlots()[63]);
+        assertEquals("true", storedSlots()[61]);
     }
 
     @Test

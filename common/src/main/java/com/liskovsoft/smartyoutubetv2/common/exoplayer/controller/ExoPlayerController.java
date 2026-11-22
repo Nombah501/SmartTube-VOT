@@ -158,7 +158,7 @@ public class ExoPlayerController implements Player.EventListener, LiveStateProvi
             return liveEdgeMs;
         }
         // NOTE: liveEdgeMs could be -1 during initial video loading. Use fallback duration.
-        return liveEdgeMs != -1 ? liveEdgeMs : getVideo().getLiveDurationMs();
+        return liveEdgeMs != -1 ? liveEdgeMs : getVideo() != null ? getVideo().getLiveDurationMs() : -1;
     }
 
     @Override
@@ -523,6 +523,20 @@ public class ExoPlayerController implements Player.EventListener, LiveStateProvi
     
     public void setOnVideoLoaded(Runnable onVideoLoaded) {
         mOnVideoLoaded = onVideoLoaded;
+    }
+
+    public Throwable getUnthrownError() {
+        if (mPlayer == null) {
+            return null;
+        }
+
+        Object manifest = mPlayer.getCurrentManifest();
+
+        if (manifest instanceof SabrManifest) {
+            return ((SabrManifest) manifest).getUnthrownError();
+        }
+
+        return null;
     }
 
     private void setQualityInfo(String qualityInfoStr) {
